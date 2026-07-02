@@ -201,6 +201,8 @@ const S = { session:null, member:null, clubs:[], fulfillment:[], cohorts:[], dra
 let homeSelected = null;
 const money = c => "$" + (c/100).toFixed(0);
 const money2 = c => "$" + (c/100).toFixed(2);
+const TAX_RATE = 0.0975, PROCESSING_RATE = 0.08;
+function pricing(base){const tax=Math.round(base*TAX_RATE);const proc=Math.round((base+tax)*PROCESSING_RATE);return{base,tax,proc,total:base+tax+proc};}
 const $ = (h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstElementChild;};
 function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',3200);}
 function go(path){location.hash = '#'+path;}
@@ -418,14 +420,16 @@ function viewJoin(slug){
   grid.append(left);
 
   const fee = ffType==='delivery'?(ff.surcharge_cents||0):(ffType==='shipping'?((S.draft.rate&&S.draft.rate.amount_cents)||0):0);
-  const total = club.monthly_price_cents+fee;
   const feeLabel = ffType==='shipping' ? (S.draft.rate?money2(fee):'Address & rate needed') : (fee?money2(fee):'Included');
+  const P=pricing(club.monthly_price_cents+fee);
   const nc=nextCohort();
   const right=$(`<div><div class="card summary">
     <h3 style="font-size:19px">Order summary</h3>
     <div class="row"><span>${esc(club.name)}</span><span>${money2(club.monthly_price_cents)}</span></div>
     <div class="row"><span>${esc(ff?ff.label:'Fulfillment')}${ffType==='shipping'&&S.draft.rate?' ('+esc(S.draft.rate.service)+')':''}</span><span>${feeLabel}</span></div>
-    <div class="row total"><span>Per month</span><span>${money2(total)}</span></div>
+    <div class="row"><span>Sales tax (9.75%)</span><span>${money2(P.tax)}</span></div>
+    <div class="row"><span>Processing fee (8%)</span><span>${money2(P.proc)}</span></div>
+    <div class="row total"><span>Total / month</span><span>${money2(P.total)}</span></div>
     <p class="muted" style="font-size:13px;margin:14px 0 0">First order: <b>${nc?fmtMonth(nc.month):'next cohort'}</b>. Billed monthly. Pause, skip, or cancel anytime.</p>
   </div></div>`);
   grid.append(right); el.append(grid);
@@ -481,7 +485,7 @@ async function completeCheckout(club, btn){
     }catch(e){}
   }
   try{
-    const amount=club.monthly_price_cents+fee;
+    const amount=pricing(club.monthly_price_cents+fee).total;
     const rec={member_id:S.session.user.id,club_id:club.id,fulfillment_option_id:S.draft.fulfillment_id,delivery_instructions:S.draft.delivery_instructions||null,is_gift:S.draft.is_gift,gift_sender_name:S.draft.is_gift?S.draft.gift_sender_name:null,gift_recipient_email:S.draft.is_gift?S.draft.gift_recipient_email:null,gift_note:S.draft.is_gift?S.draft.gift_note:null};
     if(type==='delivery'||type==='shipping'){rec.ship_name=A.name;rec.ship_street=A.street;rec.ship_city=A.city;rec.ship_state=A.state;rec.ship_zip=A.zip;rec.delivery_address=[A.street,A.city,A.state,A.zip].filter(Boolean).join(', ');}
     if(type==='shipping'){rec.ship_carrier=S.draft.rate.carrier;rec.ship_service=S.draft.rate.service;rec.ship_amount_cents=S.draft.rate.amount_cents;}
