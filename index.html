@@ -3,100 +3,105 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Greys Cheese Club — Monthly Artisan Cheese Subscriptions</title>
-  <link rel="icon" href="favicon.ico" sizes="any">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<title>Greys Fine Cheeses — Cheese Club</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --cream:#faf6ef; --paper:#fffdf9; --ink:#2b241d; --muted:#6f6557;
-  --gold:#b08442; --gold-d:#8a6630; --wine:#5e3a5e; --rust:#8c3b2e;
-  --line:#e7ddcd; --shadow:0 1px 2px rgba(43,36,29,.06),0 8px 28px rgba(43,36,29,.08);
-  --radius:16px;
+  --bg:#ffffff; --alt:#f7f6f3; --paper:#ffffff; --ink:#2f3b45; --muted:#6b7480;
+  --green:#1f5137; --green-d:#163b28; --gold:#c99a3f; --wine:#5e3a5e; --rust:#8c3b2e;
+  --line:#e7e4dd; --shadow:0 1px 2px rgba(31,42,45,.05),0 10px 30px rgba(31,42,45,.07);
+  --radius:14px;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
-h1,h2,h3,h4{font-family:Fraunces,Georgia,serif;font-weight:600;line-height:1.1;margin:0 0 .4em}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Fraunces,Georgia,serif;font-weight:600;line-height:1.15;margin:0 0 .4em}
 a{color:inherit}
-img{max-width:100%}
-.wrap{max-width:1140px;margin:0 auto;padding:0 22px}
-.btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:999px;padding:12px 22px;font:600 15px Inter,sans-serif;cursor:pointer;text-decoration:none;transition:.15s;white-space:nowrap}
-.btn-primary{background:var(--gold);color:#fff}
-.btn-primary:hover{background:var(--gold-d)}
+img{max-width:100%;display:block}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;padding:12px 22px;font:600 15px Inter,sans-serif;cursor:pointer;text-decoration:none;transition:.15s;white-space:nowrap}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-d)}
 .btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
-.btn-ghost:hover{border-color:var(--gold)}
+.btn-ghost:hover{border-color:var(--green)}
 .btn-sm{padding:8px 14px;font-size:13px}
 .btn-danger{background:#fff;border:1.5px solid #e0c2bd;color:var(--rust)}
 .btn-danger:hover{background:#fbeeec}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-/* header */
-header.nav{position:sticky;top:0;z-index:50;background:rgba(250,246,239,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:68px}
-.brand{display:flex;align-items:center;gap:11px;cursor:pointer}
-.brand .mark{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 32% 30%,#f4d99a,#b08442);display:grid;place-items:center;color:#5b3e16;font:700 18px Fraunces,serif;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
-.brand b{font:600 19px Fraunces,serif;letter-spacing:.2px}
-.brand small{display:block;font:500 10px Inter;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-top:-2px}
-.nav-links{display:flex;align-items:center;gap:8px}
+header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:66px;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer}
+.brand img{height:30px;width:auto}
+.brand .fallback{font:700 20px Fraunces,serif;letter-spacing:.12em;color:var(--ink)}
+.nav-links{display:flex;align-items:center;gap:6px}
 .nav-links a{font-weight:500;color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px}
 .nav-links a:hover{color:var(--ink)}
-/* hero */
-.hero{padding:74px 0 56px;text-align:center;background:radial-gradient(1200px 380px at 50% -120px,#fff5e1 0,transparent 70%)}
-.eyebrow{display:inline-block;font:600 12px Inter;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-d);background:#fff;border:1px solid var(--line);padding:7px 14px;border-radius:999px;margin-bottom:22px}
-.hero h1{font-size:clamp(38px,6vw,68px);max-width:14ch;margin-inline:auto}
-.hero p{font-size:19px;color:var(--muted);max-width:56ch;margin:18px auto 30px}
-.hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.trust{margin-top:40px;color:var(--muted);font-size:13px;letter-spacing:.04em}
-/* sections */
-section{padding:56px 0}
-.sec-head{text-align:center;max-width:60ch;margin:0 auto 40px}
-.sec-head h2{font-size:clamp(28px,4vw,42px)}
-.sec-head p{color:var(--muted);font-size:17px}
-/* club cards */
-.clubs{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-.club{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:28px;display:flex;flex-direction:column;box-shadow:var(--shadow);position:relative;transition:.18s}
-.club:hover{transform:translateY(-3px);border-color:#dcc9a6}
-.club.featured{border-color:var(--gold);box-shadow:0 10px 36px rgba(176,132,66,.18)}
-.club .badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#fff;font:600 11px Inter;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:999px}
-.club .badge.premium{background:var(--wine)}
-.club .swatch{height:6px;width:54px;border-radius:99px;margin-bottom:18px}
-.club h3{font-size:25px}
-.club .tag{color:var(--muted);font-size:14px;min-height:42px}
-.price{margin:16px 0 6px;font-family:Fraunces;font-size:40px;font-weight:600}
-.price span{font:500 15px Inter;color:var(--muted)}
-.club ul{list-style:none;padding:0;margin:16px 0 22px;font-size:14px}
-.club ul li{padding:7px 0 7px 26px;position:relative;border-top:1px dashed var(--line)}
-.club ul li:before{content:"";position:absolute;left:2px;top:13px;width:9px;height:9px;border-radius:50%;background:var(--gold)}
-.club .btn{margin-top:auto;justify-content:center}
-/* how it works */
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.step{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
-.step .n{width:34px;height:34px;border-radius:50%;background:#f3e8d3;color:var(--gold-d);display:grid;place-items:center;font:700 15px Fraunces;margin-bottom:14px}
-.step h4{font-size:18px}
-.step p{color:var(--muted);font-size:14px;margin:0}
-/* generic card / panels */
-.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+/* rating + gallery */
+.rating{display:flex;align-items:center;gap:8px;justify-content:center;color:var(--muted);font-size:14px;padding:26px 0 18px}
+.stars{color:var(--gold);letter-spacing:2px;font-size:16px}
+.gallery{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:10px;overflow-x:auto;padding:2px 0 8px;scroll-snap-type:x mandatory}
+.gallery img{width:100%;height:230px;object-fit:cover;border-radius:12px;scroll-snap-align:start;background:var(--alt)}
+/* layout */
+.layout{display:grid;grid-template-columns:1fr 400px;gap:38px;align-items:start;padding:34px 0 90px}
+.sec{margin-bottom:34px}
+.sec h2{font-size:24px;margin-bottom:12px}
+.sec p{color:#4a545e}
+.overview-box{background:var(--alt);border-radius:12px;padding:20px 22px;color:#4a545e}
+.supporting{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.supporting img{width:260px;height:200px;object-fit:cover;border-radius:12px}
+.supporting .txt{flex:1;min-width:220px;color:#4a545e}
+.steps{display:flex;flex-direction:column;gap:16px}
+.step{display:flex;gap:14px}
+.step .n{flex:none;width:32px;height:32px;border-radius:50%;background:#e7efe9;color:var(--green);display:grid;place-items:center;font:700 15px Fraunces}
+.step h4{font-size:17px;margin:2px 0 3px}
+.step p{margin:0;font-size:14px}
+.perks{list-style:none;padding:0;margin:0}
+.perks li{padding:10px 0 10px 30px;position:relative;border-top:1px solid var(--line);color:#4a545e}
+.perks li:first-child{border-top:none}
+.perks li:before{content:"✓";position:absolute;left:2px;top:9px;color:var(--green);font-weight:700}
+.know{display:flex;gap:22px;flex-wrap:wrap;color:#4a545e;font-size:14px}
+.know div{display:flex;flex-direction:column}
+.know b{color:var(--ink);font-family:Fraunces;font-size:16px}
+/* membership selector */
+.membership{position:sticky;top:88px;border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);background:#fff}
+.membership h3{font-size:20px;margin-bottom:14px}
+.plan{border:1.5px solid var(--line);border-radius:12px;padding:15px 16px;margin-bottom:12px;cursor:pointer;transition:.15s;position:relative}
+.plan:hover{border-color:#cdd6cf}
+.plan.sel{border-color:var(--green);background:#f4f9f5;box-shadow:0 0 0 1px var(--green) inset}
+.plan .ph{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.plan .ph b{font-size:16px}
+.plan .price{font:600 17px Fraunces;color:var(--ink)}
+.plan .desc{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.45}
+.plan .avail{display:inline-block;margin-top:8px;font-size:11px;font-weight:600;color:var(--green);background:#eaf2ec;border-radius:99px;padding:3px 9px}
+.plan .badge{position:absolute;top:-10px;right:14px;background:var(--green);color:#fff;font:600 10px Inter;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+.plan.wine .avail{color:#5e7a3a;background:#eef3e6}
+.cta-btn{width:100%;margin-top:6px}
+.subnote{text-align:center;color:var(--muted);font-size:12px;margin-top:10px}
+/* generic */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
 .grid2{display:grid;grid-template-columns:1.3fr .9fr;gap:24px;align-items:start}
 label.fld{display:block;margin:0 0 14px}
 label.fld span{display:block;font-weight:600;font-size:13px;margin-bottom:6px}
 input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;font:400 15px Inter;background:#fff;color:var(--ink)}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)}
 .radio-row{display:flex;flex-direction:column;gap:10px}
 .opt{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
-.opt:hover{border-color:#dcc9a6}
-.opt.sel{border-color:var(--gold);background:#fff8ec}
+.opt:hover{border-color:#cdd6cf}
+.opt.sel{border-color:var(--green);background:#f4f9f5}
 .opt input{width:auto}
 .opt .meta{flex:1}
 .opt .meta b{font-size:15px}
 .opt .meta small{display:block;color:var(--muted)}
-.opt .amt{font-weight:600;color:var(--gold-d)}
-.summary{position:sticky;top:90px}
+.opt .amt{font-weight:600;color:var(--green)}
+.summary{position:sticky;top:88px}
 .summary .row{display:flex;justify-content:space-between;padding:8px 0;font-size:15px;border-top:1px dashed var(--line)}
 .summary .row.total{border-top:2px solid var(--line);margin-top:6px;padding-top:14px;font-weight:700;font-size:19px;font-family:Fraunces}
 .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:24px;flex-wrap:wrap}
 .tabs button{background:none;border:none;padding:12px 16px;font:600 14px Inter;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
-.tabs button.on{color:var(--ink);border-bottom-color:var(--gold)}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--green)}
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px}
 .metric{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px}
 .metric .k{font:600 12px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -104,51 +109,42 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{text-align:left;font:600 12px Inter;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line)}
 td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-tr:hover td{background:#fffaf0}
+tr:hover td{background:#f8faf8}
 .pill{display:inline-block;padding:3px 10px;border-radius:999px;font:600 12px Inter}
-.pill.active{background:#e6f3e7;color:#2f7d3a}
-.pill.paused{background:#fbf0d8;color:#996c12}
-.pill.cancelled{background:#f2e3e1;color:#9a4034}
-.pill.scheduled{background:#eef1f6;color:#46546e}
-.pill.skipped{background:#efe9df;color:#6f6557}
-.pill.paid{background:#e6f3e7;color:#2f7d3a}
+.pill.active{background:#e6f3e7;color:#2f7d3a}.pill.paused{background:#fbf0d8;color:#996c12}.pill.cancelled{background:#f2e3e1;color:#9a4034}.pill.scheduled{background:#eef1f6;color:#46546e}.pill.skipped{background:#efe9df;color:#6f6557}.pill.paid{background:#e6f3e7;color:#2f7d3a}
 .empty{text-align:center;color:var(--muted);padding:50px 20px}
 .sub-card{border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;background:var(--paper)}
 .sub-card .top{display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap}
 .sub-card h3{margin:0;font-size:21px}
 .sub-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
-.note{background:#fff8ec;border:1px solid #ecd9b3;border-radius:12px;padding:14px 16px;font-size:14px;color:#6b5326}
+.note{background:#f1f7f2;border:1px solid #cfe3d5;border-radius:12px;padding:14px 16px;font-size:14px;color:#2f5540}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;padding:13px 22px;border-radius:999px;font-weight:500;box-shadow:var(--shadow);z-index:200;transition:transform .3s;max-width:90vw}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.err{background:var(--rust)}
-.modal-bg{position:fixed;inset:0;background:rgba(43,36,29,.45);display:none;place-items:center;z-index:100;padding:20px}
+.modal-bg{position:fixed;inset:0;background:rgba(31,42,45,.45);display:none;place-items:center;z-index:100;padding:20px}
 .modal-bg.show{display:grid}
 .modal{background:var(--paper);border-radius:var(--radius);padding:30px;max-width:430px;width:100%;box-shadow:var(--shadow)}
 .modal h3{font-size:24px}
-.seg{display:flex;background:#f3ecdf;border-radius:10px;padding:4px;margin-bottom:18px}
+.seg{display:flex;background:#eef0ee;border-radius:10px;padding:4px;margin-bottom:18px}
 .seg button{flex:1;border:none;background:none;padding:9px;border-radius:7px;font:600 14px Inter;color:var(--muted);cursor:pointer}
 .seg button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow)}
-footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:13px;text-align:center;margin-top:40px}
-.muted{color:var(--muted)}
-.center{text-align:center}
-.hidden{display:none!important}
-@media(max-width:880px){.clubs,.steps,.metrics{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.nav-links a.hideable{display:none}.table-scroll{overflow-x:auto}}
+footer{border-top:1px solid var(--line);padding:30px 0;color:var(--muted);font-size:13px;text-align:center}
+.muted{color:var(--muted)}.center{text-align:center}
+@media(max-width:860px){.layout{grid-template-columns:1fr}.membership{position:static}.grid2{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.nav-links a.hideable{display:none}.table-scroll{overflow-x:auto}.supporting img{width:100%}}
 </style>
 </head>
 <body>
 <header class="nav"><div class="wrap nav-in">
   <div class="brand" onclick="go('/')">
-    <div class="mark">G</div>
-    <div><b>Greys Cheese Club</b><small>Memphis · Nashville · Franklin</small></div>
+    <img src="https://res.cloudinary.com/table22/image/upload/q_auto:best,h_60/v1/partners/greys-fine-cheeses/greys_logo.png" alt="Greys Fine Cheeses" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span class="fallback" style="display:none">GREYS</span>
   </div>
   <nav class="nav-links" id="navLinks"></nav>
 </div></header>
 
 <main id="app"></main>
 
-<footer><div class="wrap">
-  Greys Cheese Club · A monthly artisan cheese subscription · <span class="muted">Demo storefront — placeholder pricing</span>
-</div></footer>
+<footer><div class="wrap">Greys Fine Cheeses · Cheese Club · Memphis · Nashville · Franklin</div></footer>
 
 <div class="toast" id="toast"></div>
 <div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
@@ -158,19 +154,33 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 /* ====== CONFIG ====== */
 const SUPABASE_URL = "https://vdvtrevhqalmjwhjhjug.supabase.co";
 const SUPABASE_KEY = "sb_publishable_LnlevWReed7K8cFk_f_Mxg_UywktQ5_";
-// Flip to true once you've added your Stripe test keys (see README). When false,
-// checkout activates the membership instantly in "demo" mode so the whole site works end-to-end.
 const STRIPE_ENABLED = false;
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const IMG = "https://res.cloudinary.com/table22/image/upload/";
+const GAL = "c_fill,g_center,w_640,h_480,q_auto,f_auto/v1/";
+const GALLERY = [
+  "partners/greys-fine-cheese/offerings/greys-fine-cheese-club/441575786_422341607080229_2985205994719362900_n.jpg",
+  "partners/greys-fine-cheeses/offerings/greys-fine-cheese-club/post590411685_18094464673937789.jpg",
+  "partners/greys-fine-cheese/offerings/greys-fine-cheese-club/cheeseclubTable22.jpg",
+  "partners/greys-fine-cheese/offerings/greys-fine-cheese-club/Cheese_log.jpg",
+  "partners/greys-fine-cheeses/offerings/greys-fine-cheese-club/post590405251_18091387513937789.jpg",
+  "partners/greys-fine-cheese/offerings/greys-fine-cheese-club/439569687_1921132191654595_8560397392716441394_n.jpg",
+  "partners/greys-fine-cheese/offerings/greys-fine-cheese-club/UK_visit_Stichelton.jpg"
+].map(p=>IMG+GAL+p);
+const OWNER_IMG = IMG+"c_fill,g_center,w_560,h_430,q_auto,f_auto/v1/partners/greys-fine-cheeses/Cheese_Cave_Spain.webp";
+
 /* ====== STATE ====== */
 const S = { session:null, member:null, clubs:[], fulfillment:[], cohorts:[], draft:null };
+let homeSelected = null;
 const money = c => "$" + (c/100).toFixed(0);
 const money2 = c => "$" + (c/100).toFixed(2);
 const $ = (h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstElementChild;};
 function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',3200);}
 function go(path){location.hash = '#'+path;}
-function esc(s){return (s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function esc(s){return (s==null?'':s).toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function mfOnly(club){return (club.availability||'').toLowerCase().includes('memphis and franklin');}
+function allowedFulfillment(club){ return mfOnly(club) ? S.fulfillment.filter(f=>f.type==='pickup'&&/memphis|franklin/i.test(f.label)) : S.fulfillment; }
 
 /* ====== DATA ====== */
 async function loadCatalog(){
@@ -211,114 +221,123 @@ async function render(){
   await loadCatalog();
   renderNav();
   const hash = location.hash.replace(/^#/,'')||'/';
-  const [_,seg,arg] = hash.split('/');
+  const parts = hash.split('/'); const seg=parts[1], arg=parts[2];
   const app = document.getElementById('app');
   window.scrollTo(0,0);
   if(!seg){ app.innerHTML=''; app.append(viewHome()); return; }
   if(seg==='join'){ app.innerHTML=''; app.append(viewJoin(arg)); return; }
   if(seg==='account'){ if(!S.session) return go('/login'); await refreshMember(); app.innerHTML=''; app.append(await viewAccount()); return; }
-  if(seg==='admin'){ if(!S.session) return go('/login'); await refreshMember(); if(!S.member?.is_admin){app.innerHTML='';app.append(viewNoAdmin());return;} app.innerHTML=''; app.append(await viewAdmin()); return; }
+  if(seg==='admin'){ if(!S.session) return go('/login'); await refreshMember(); if(!(S.member&&S.member.is_admin)){app.innerHTML='';app.append(viewNoAdmin());return;} app.innerHTML=''; app.append(await viewAdmin()); return; }
   if(seg==='login'){ app.innerHTML=''; app.append(viewLogin()); return; }
   app.innerHTML=''; app.append(viewHome());
 }
 function renderNav(){
-  const n=document.getElementById('navLinks');
-  n.innerHTML='';
-  n.append($(`<a class="hideable" onclick="go('/')">The Clubs</a>`));
+  const n=document.getElementById('navLinks'); n.innerHTML='';
+  n.append($(`<a class="hideable" onclick="go('/')">The Club</a>`));
   if(S.session){
-    if(S.member?.is_admin) n.append($(`<a onclick="go('/admin')">Partner Portal</a>`));
+    if(S.member&&S.member.is_admin) n.append($(`<a onclick="go('/admin')">Partner Portal</a>`));
     n.append($(`<a onclick="go('/account')">My Membership</a>`));
     n.append($(`<a class="btn btn-ghost btn-sm" onclick="logout()">Sign out</a>`));
   }else{
     n.append($(`<a onclick="go('/login')">Sign in</a>`));
-    n.append($(`<a class="btn btn-primary btn-sm" onclick="go('/')">Join a club</a>`));
+    n.append($(`<a class="btn btn-primary btn-sm" onclick="go('/')">Become a member</a>`));
   }
 }
 
-/* ====== VIEW: HOME ====== */
+/* ====== VIEW: HOME (Table22-style) ====== */
 function viewHome(){
-  const el=$(`<div></div>`);
-  el.append($(`
-  <div class="hero"><div class="wrap">
-    <span class="eyebrow">Cheese with soul & story</span>
-    <h1>A hand-picked cheese box, at your door every month.</h1>
-    <p>Our cheesemongers cut to order and curate a new selection each month — with tasting notes so you can taste like a pro at home. Pick a club, pick a pickup spot or delivery, and we handle the rest.</p>
-    <div class="cta">
-      <a class="btn btn-primary" onclick="document.getElementById('clubs').scrollIntoView({behavior:'smooth'})">Choose your club →</a>
-      <a class="btn btn-ghost" onclick="go('/login')">I'm already a member</a>
-    </div>
-    <div class="trust">Cancel, skip, or pause anytime · Pickup in Memphis, Nashville & Franklin · Local delivery available</div>
+  if(!homeSelected && S.clubs[0]) homeSelected = S.clubs[0].slug;
+  const el=$(`<div class="wrap"></div>`);
+  el.append($(`<div class="rating"><span class="stars">★★★★☆</span> 4.4 · based on 32 reviews</div>`));
+  const gal=$(`<div class="gallery"></div>`);
+  GALLERY.forEach(src=>{const im=$(`<img loading="lazy" alt="Greys Fine Cheeses">`);im.src=src;gal.append(im);});
+  el.append(gal);
+
+  const layout=$(`<div class="layout"></div>`);
+  const left=$(`<div></div>`);
+  left.append($(`<div class="sec"><h2>Overview</h2><div class="overview-box">At Greys Fine Cheeses, the cut to order counter and wine bar come together in a monthly club built for true cheese lovers. Expect rotating selections chosen by the mongers, shaped by the season, and only possible from the team sourcing wheels firsthand. Join in.</div></div>`));
+  const sup=$(`<div class="sec"><h2>Who you're supporting</h2><div class="supporting"></div></div>`);
+  const supimg=$(`<img alt="Greys Fine Cheeses owners" loading="lazy">`); supimg.src=OWNER_IMG; supimg.onerror=()=>supimg.remove();
+  sup.querySelector('.supporting').append(supimg);
+  sup.querySelector('.supporting').append($(`<div class="txt">A family-owned specialty cheese shop and wine bar with locations in Memphis, Nashville, and Franklin — connecting people to remarkable, small-batch cheeses made the right way.</div>`));
+  left.append(sup);
+  left.append($(`<div class="sec"><h2>How it works</h2><div class="steps">
+    <div class="step"><div class="n">1</div><div><h4>We select this month's picks</h4><p>Each month, we choose selections we're excited about — seasonal styles, special producers, and cheeses with a story to tell. Tasting notes included so you know what you're getting and why it's special.</p></div></div>
+    <div class="step"><div class="n">2</div><div><h4>We let you know when it's ready</h4><p>You'll get an email each month with the date and details — same schedule each month so you can plan around it.</p></div></div>
+    <div class="step"><div class="n">3</div><div><h4>Build your board and enjoy</h4><p>Slice, pair, and enjoy at home — whether it's a quiet night in or something to share. Great on its own, better with company.</p></div></div>
   </div></div>`));
+  left.append($(`<div class="sec"><h2>Member perks</h2><ul class="perks">
+    <li>Monthly, monger-selected cheeses and optional wine pairings</li>
+    <li>First access to limited wheels and small-production bottles</li>
+    <li>Member discounts on the cheese counter and in-store dining</li>
+  </ul></div>`));
+  const nc=nextCohort();
+  left.append($(`<div class="sec"><h2>What you need to know</h2><div class="know">
+    <div><b>Pickup & delivery</b><span>Memphis, Nashville & Franklin</span></div>
+    <div><b>Next order</b><span>${nc?fmtMonth(nc.month):'—'}</span></div>
+    <div><b>Flexibility</b><span>Pause or cancel any time</span></div>
+  </div></div>`));
+  layout.append(left);
 
-  const clubsWrap=$(`<section id="clubs"><div class="wrap"><div class="sec-head"><h2>Find your club</h2><p>Three ways to taste your way through the world of artisan cheese. Every membership is month-to-month.</p></div><div class="clubs"></div></div></section>`);
-  const grid=clubsWrap.querySelector('.clubs');
+  // right: membership selector
+  const right=$(`<div></div>`);
+  const card=$(`<div class="membership"><h3>Your membership</h3><div id="plans"></div></div>`);
+  const plans=card.querySelector('#plans');
   S.clubs.forEach(c=>{
-    const feat = c.is_base || c.badge==='Most popular';
-    const card=$(`<div class="club ${feat?'featured':''}">
-      ${c.badge?`<div class="badge ${c.badge==='Premium'?'premium':''}">${esc(c.badge)}</div>`:''}
-      <div class="swatch" style="background:${esc(c.accent||'#b08442')}"></div>
-      <h3>${esc(c.name)}</h3>
-      <div class="tag">${esc(c.tagline||'')}</div>
-      <div class="price">${money(c.monthly_price_cents)}<span>/month</span></div>
-      <ul>${(c.whats_inside||'').split(',').map(x=>`<li>${esc(x.trim())}</li>`).join('')}</ul>
-      <button class="btn btn-primary" onclick="go('/join/${c.slug}')">Join ${esc(c.name.replace(/ Club.*/,''))}</button>
+    const sel=homeSelected===c.slug;
+    const p=$(`<div class="plan ${sel?'sel':''} ${c.slug==='off-the-vine'?'wine':''}">
+      ${c.badge?`<div class="badge">${esc(c.badge)}</div>`:''}
+      <div class="ph"><b>${esc(c.name)}</b><span class="price">${money(c.monthly_price_cents)}</span></div>
+      <div class="desc">${esc(c.description||'')}</div>
     </div>`);
-    grid.append(card);
+    p.addEventListener('click',()=>{homeSelected=c.slug; el.replaceWith(viewHome());});
+    plans.append(p);
   });
-  el.append(clubsWrap);
-
-  el.append($(`
-  <section style="background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="wrap">
-    <div class="sec-head"><h2>How it works</h2><p>Set it up once. We take care of the rest, every month.</p></div>
-    <div class="steps">
-      <div class="step"><div class="n">1</div><h4>Choose a club</h4><p>Pick the experience that fits you and how you'd like to receive it.</p></div>
-      <div class="step"><div class="n">2</div><h4>We curate</h4><p>Each month our cheesemongers select and cut a fresh lineup with tasting notes.</p></div>
-      <div class="step"><div class="n">3</div><h4>Pick up or delivered</h4><p>Grab it at your store on fulfillment day, or have it delivered locally.</p></div>
-      <div class="step"><div class="n">4</div><h4>Stay in control</h4><p>Skip a month, pause, switch clubs, or cancel anytime from your member portal.</p></div>
-    </div>
-  </div></section>`));
+  const selClub=S.clubs.find(c=>c.slug===homeSelected)||S.clubs[0];
+  const cta=$(`<button class="btn btn-primary cta-btn">Become a member · ${selClub?money(selClub.monthly_price_cents)+' / month':''}</button>`);
+  cta.addEventListener('click',()=>go('/join/'+homeSelected));
+  card.append(cta);
+  card.append($(`<div class="subnote">Gift options available at checkout · Pause or cancel anytime</div>`));
+  right.append(card);
+  layout.append(right);
+  el.append(layout);
   return el;
 }
+function fmtMonth(d){return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});}
 
 /* ====== VIEW: JOIN / CHECKOUT ====== */
 function viewJoin(slug){
   const club = S.clubs.find(c=>c.slug===slug);
-  if(!club){const e=$(`<div class="wrap" style="padding:60px 0"><div class="empty">Club not found. <a onclick="go('/')">Back to clubs</a></div></div>`);return e;}
+  if(!club){return $(`<div class="wrap" style="padding:60px 0"><div class="empty">Club not found. <a onclick="go('/')">Back to the club</a></div></div>`);}
+  const ffOpts = allowedFulfillment(club);
   if(!S.draft || S.draft.club_id!==club.id){
-    S.draft={club_id:club.id, fulfillment_id:(S.fulfillment[0]||{}).id, is_gift:false, gift_sender_name:'', gift_recipient_email:'', gift_note:'', delivery_instructions:''};
+    S.draft={club_id:club.id, fulfillment_id:(ffOpts[0]||{}).id, is_gift:false, gift_sender_name:'', gift_recipient_email:'', gift_note:'', delivery_instructions:''};
   }
-  const el=$(`<div class="wrap" style="padding:40px 0 70px"></div>`);
-  el.append($(`<a class="muted" style="cursor:pointer;font-size:14px" onclick="go('/')">← All clubs</a>`));
-  el.append($(`<h1 style="margin:14px 0 4px">Join ${esc(club.name)}</h1><p class="muted" style="margin-top:0;max-width:60ch">${esc(club.description||'')}</p>`));
+  const el=$(`<div class="wrap" style="padding:34px 0 70px"></div>`);
+  el.append($(`<a class="muted" style="cursor:pointer;font-size:14px" onclick="go('/')">← All memberships</a>`));
+  el.append($(`<h1 style="margin:14px 0 4px">Join ${esc(club.name)}</h1><p class="muted" style="margin-top:0;max-width:64ch">${esc(club.description||'')}</p>`));
 
-  const grid=$(`<div class="grid2" style="margin-top:26px"></div>`);
+  const grid=$(`<div class="grid2" style="margin-top:24px"></div>`);
   const left=$(`<div></div>`);
-  // fulfillment
-  const fcard=$(`<div class="card" style="margin-bottom:22px"><h3 style="font-size:20px">How would you like to receive it?</h3><div class="radio-row" id="ffr"></div></div>`);
+  const fcard=$(`<div class="card" style="margin-bottom:22px"><h3 style="font-size:19px">How would you like to receive it?</h3>${mfOnly(club)?'<p class="muted" style="font-size:13px;margin-top:0">This membership is available for pickup in Memphis & Franklin only.</p>':''}<div class="radio-row" id="ffr"></div></div>`);
   const ffr=fcard.querySelector('#ffr');
-  S.fulfillment.forEach(f=>{
+  ffOpts.forEach(f=>{
     const sel=S.draft.fulfillment_id===f.id;
-    const o=$(`<label class="opt ${sel?'sel':''}">
-      <input type="radio" name="ff" ${sel?'checked':''}>
-      <div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div>
-      <div class="amt">${f.surcharge_cents?'+'+money(f.surcharge_cents):'Included'}</div>
-    </label>`);
+    const o=$(`<label class="opt ${sel?'sel':''}"><input type="radio" name="ff" ${sel?'checked':''}><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="amt">${f.surcharge_cents?'+'+money(f.surcharge_cents):'Included'}</div></label>`);
     o.addEventListener('click',()=>{S.draft.fulfillment_id=f.id; el.replaceWith(viewJoin(slug));});
     ffr.append(o);
   });
   left.append(fcard);
-  // delivery instructions if delivery
-  const ff=S.fulfillment.find(x=>x.id===S.draft.fulfillment_id);
+  const ff=ffOpts.find(x=>x.id===S.draft.fulfillment_id);
   if(ff&&ff.type==='delivery'){
-    const d=$(`<div class="card" style="margin-bottom:22px"><label class="fld"><span>Delivery instructions (optional)</span><textarea rows="2" id="dins" placeholder="Gate code, where to leave it, etc.">${esc(S.draft.delivery_instructions)}</textarea></label></div>`);
+    const d=$(`<div class="card" style="margin-bottom:22px"><label class="fld"><span>Delivery instructions (optional)</span><textarea rows="2" id="dins">${esc(S.draft.delivery_instructions)}</textarea></label></div>`);
     d.querySelector('#dins').addEventListener('input',e=>S.draft.delivery_instructions=e.target.value);
     left.append(d);
   }
-  // gift
-  const gcard=$(`<div class="card" style="margin-bottom:22px"><label class="opt ${S.draft.is_gift?'sel':''}" style="margin-bottom:${S.draft.is_gift?'16px':'0'}"><input type="checkbox" id="giftck" ${S.draft.is_gift?'checked':''}><div class="meta"><b>This is a gift 🎁</b><small>We'll send the recipient a welcome note.</small></div></label><div id="giftfields"></div></div>`);
+  const gcard=$(`<div class="card" style="margin-bottom:22px"><label class="opt ${S.draft.is_gift?'sel':''}"><input type="checkbox" id="giftck" ${S.draft.is_gift?'checked':''}><div class="meta"><b>This is a gift 🎁</b><small>We'll send the recipient a welcome note.</small></div></label><div id="giftfields"></div></div>`);
   gcard.querySelector('#giftck').addEventListener('change',e=>{S.draft.is_gift=e.target.checked; el.replaceWith(viewJoin(slug));});
   if(S.draft.is_gift){
-    const gf=gcard.querySelector('#giftfields');
+    const gf=gcard.querySelector('#giftfields'); gf.style.marginTop='14px';
     gf.append($(`<label class="fld"><span>Your name (gift sender)</span><input id="gsn" value="${esc(S.draft.gift_sender_name)}"></label>`));
     gf.append($(`<label class="fld"><span>Recipient email</span><input id="gre" type="email" value="${esc(S.draft.gift_recipient_email)}"></label>`));
     gf.append($(`<label class="fld"><span>Gift note</span><textarea rows="2" id="gnt">${esc(S.draft.gift_note)}</textarea></label>`));
@@ -327,42 +346,32 @@ function viewJoin(slug){
     gf.querySelector('#gnt').addEventListener('input',e=>S.draft.gift_note=e.target.value);
   }
   left.append(gcard);
-
-  // auth / confirm
-  const authCard=$(`<div class="card" id="authCard"></div>`);
-  left.append(authCard);
+  const authCard=$(`<div class="card" id="authCard"></div>`); left.append(authCard);
   renderJoinAuth(authCard, club, slug);
   grid.append(left);
 
-  // summary
   const surcharge = ff?ff.surcharge_cents:0;
   const total = club.monthly_price_cents+surcharge;
   const nc=nextCohort();
   const right=$(`<div><div class="card summary">
-    <h3 style="font-size:20px">Order summary</h3>
+    <h3 style="font-size:19px">Order summary</h3>
     <div class="row"><span>${esc(club.name)}</span><span>${money2(club.monthly_price_cents)}</span></div>
     <div class="row"><span>${esc(ff?ff.label:'Fulfillment')}</span><span>${surcharge?money2(surcharge):'Included'}</span></div>
     <div class="row total"><span>Per month</span><span>${money2(total)}</span></div>
-    <p class="muted" style="font-size:13px;margin:14px 0 0">First box: <b>${nc?fmtMonth(nc.month):'next cohort'}</b>. Billed monthly. Cancel, skip, or pause anytime — no commitment.</p>
+    <p class="muted" style="font-size:13px;margin:14px 0 0">First order: <b>${nc?fmtMonth(nc.month):'next cohort'}</b>. Billed monthly. Pause, skip, or cancel anytime.</p>
   </div></div>`);
-  grid.append(right);
-  el.append(grid);
+  grid.append(right); el.append(grid);
   return el;
 }
-function fmtMonth(d){return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});}
-
 function renderJoinAuth(card, club, slug){
   if(S.session){
-    card.innerHTML=`<h3 style="font-size:20px">Confirm your membership</h3><p class="muted" style="margin-top:0">Signed in as <b>${esc(S.session.user.email)}</b>. Ready to start your subscription.</p>`;
-    const b=$(`<button class="btn btn-primary" style="width:100%;justify-content:center" id="confirmBtn">Start my subscription →</button>`);
-    b.addEventListener('click',()=>completeCheckout(club,b));
-    card.append(b);
-    card.append($(`<p class="muted center" style="font-size:12px;margin-bottom:0">You can review and manage everything afterward in your member portal.</p>`));
+    card.innerHTML=`<h3 style="font-size:19px">Confirm your membership</h3><p class="muted" style="margin-top:0">Signed in as <b>${esc(S.session.user.email)}</b>.</p>`;
+    const b=$(`<button class="btn btn-primary" style="width:100%">Become a member →</button>`);
+    b.addEventListener('click',()=>completeCheckout(club,b)); card.append(b);
   }else{
-    card.innerHTML=`<h3 style="font-size:20px">Create your account</h3><p class="muted" style="margin-top:0">You'll use this to manage your membership.</p>`;
+    card.innerHTML=`<h3 style="font-size:19px">Create your account</h3><p class="muted" style="margin-top:0">You'll use this to manage your membership.</p>`;
     const seg=$(`<div class="seg"><button class="on" data-m="signup">New member</button><button data-m="login">I have an account</button></div>`);
-    const form=$(`<div></div>`);
-    card.append(seg);card.append(form);
+    const form=$(`<div></div>`); card.append(seg); card.append(form);
     let mode='signup';
     const draw=()=>{
       form.innerHTML='';
@@ -371,24 +380,14 @@ function renderJoinAuth(card, club, slug){
         form.append($(`<label class="fld"><span>Email</span><input id="su_email" type="email"></label>`));
         form.append($(`<label class="fld"><span>Phone</span><input id="su_phone" type="tel"></label>`));
         form.append($(`<label class="fld"><span>Password</span><input id="su_pw" type="password" placeholder="At least 8 characters"></label>`));
-        const b=$(`<button class="btn btn-primary" style="width:100%;justify-content:center">Create account & continue →</button>`);
-        b.addEventListener('click',async()=>{
-          b.disabled=true;b.textContent='Creating…';
-          try{
-            await doSignup(form.querySelector('#su_email').value.trim(),form.querySelector('#su_pw').value,form.querySelector('#su_name').value.trim(),form.querySelector('#su_phone').value.trim());
-            await onAuthed(); completeCheckout(club,b);
-          }catch(e){toast(e.message,true);b.disabled=false;b.textContent='Create account & continue →';}
-        });
+        const b=$(`<button class="btn btn-primary" style="width:100%">Create account & continue →</button>`);
+        b.addEventListener('click',async()=>{b.disabled=true;b.textContent='Creating…';try{await doSignup(form.querySelector('#su_email').value.trim(),form.querySelector('#su_pw').value,form.querySelector('#su_name').value.trim(),form.querySelector('#su_phone').value.trim());await onAuthed();completeCheckout(club,b);}catch(e){toast(e.message,true);b.disabled=false;b.textContent='Create account & continue →';}});
         form.append(b);
       }else{
         form.append($(`<label class="fld"><span>Email</span><input id="li_email" type="email"></label>`));
         form.append($(`<label class="fld"><span>Password</span><input id="li_pw" type="password"></label>`));
-        const b=$(`<button class="btn btn-primary" style="width:100%;justify-content:center">Sign in & continue →</button>`);
-        b.addEventListener('click',async()=>{
-          b.disabled=true;b.textContent='Signing in…';
-          try{ await doLogin(form.querySelector('#li_email').value.trim(),form.querySelector('#li_pw').value); await onAuthed(); completeCheckout(club,b);}
-          catch(e){toast(e.message,true);b.disabled=false;b.textContent='Sign in & continue →';}
-        });
+        const b=$(`<button class="btn btn-primary" style="width:100%">Sign in & continue →</button>`);
+        b.addEventListener('click',async()=>{b.disabled=true;b.textContent='Signing in…';try{await doLogin(form.querySelector('#li_email').value.trim(),form.querySelector('#li_pw').value);await onAuthed();completeCheckout(club,b);}catch(e){toast(e.message,true);b.disabled=false;b.textContent='Sign in & continue →';}});
         form.append(b);
       }
     };
@@ -396,45 +395,30 @@ function renderJoinAuth(card, club, slug){
     draw();
   }
 }
-
 async function completeCheckout(club, btn){
   if(btn){btn.disabled=true;btn.textContent='Starting…';}
-  // Stripe (test mode) path — used only when enabled AND configured on the backend.
   if(STRIPE_ENABLED){
     try{
       const {data:{session}}=await sb.auth.getSession();
-      const r=await fetch(SUPABASE_URL+'/functions/v1/cc-checkout',{
-        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SUPABASE_KEY},
-        body:JSON.stringify({club_id:club.id,fulfillment_option_id:S.draft.fulfillment_id,origin:location.origin+location.pathname})
-      });
-      const j=await r.json();
-      if(j.url){ location.href=j.url; return; }      // -> Stripe Checkout; webhook provisions on success
-      // j.configured===false -> fall through to instant activation
-    }catch(e){ /* fall through to demo activation */ }
+      const r=await fetch(SUPABASE_URL+'/functions/v1/cc-checkout',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SUPABASE_KEY},body:JSON.stringify({club_id:club.id,fulfillment_option_id:S.draft.fulfillment_id,origin:location.origin+location.pathname})});
+      const j=await r.json(); if(j.url){location.href=j.url;return;}
+    }catch(e){}
   }
   try{
     const ff=S.fulfillment.find(x=>x.id===S.draft.fulfillment_id);
-    const surcharge=ff?ff.surcharge_cents:0;
-    const amount=club.monthly_price_cents+surcharge;
-    const {data:sub,error}=await sb.from('cc_subscriptions').insert({
-      member_id:S.session.user.id, club_id:club.id, fulfillment_option_id:S.draft.fulfillment_id,
-      delivery_instructions:S.draft.delivery_instructions||null,
-      is_gift:S.draft.is_gift, gift_sender_name:S.draft.is_gift?S.draft.gift_sender_name:null,
-      gift_recipient_email:S.draft.is_gift?S.draft.gift_recipient_email:null, gift_note:S.draft.is_gift?S.draft.gift_note:null
-    }).select().single();
+    const amount=club.monthly_price_cents+(ff?ff.surcharge_cents:0);
+    const {data:sub,error}=await sb.from('cc_subscriptions').insert({member_id:S.session.user.id,club_id:club.id,fulfillment_option_id:S.draft.fulfillment_id,delivery_instructions:S.draft.delivery_instructions||null,is_gift:S.draft.is_gift,gift_sender_name:S.draft.is_gift?S.draft.gift_sender_name:null,gift_recipient_email:S.draft.is_gift?S.draft.gift_recipient_email:null,gift_note:S.draft.is_gift?S.draft.gift_note:null}).select().single();
     if(error) throw error;
     const nc=nextCohort();
     if(nc){ await sb.from('cc_orders').insert({subscription_id:sub.id,cohort_id:nc.id,amount_cents:amount,status:'scheduled'}); }
-    S.draft=null;
-    showWelcome(club);
-  }catch(e){ toast(e.message||'Something went wrong.',true); if(btn){btn.disabled=false;btn.textContent='Start my subscription →';} }
+    S.draft=null; showWelcome(club);
+  }catch(e){ toast(e.message||'Something went wrong.',true); if(btn){btn.disabled=false;btn.textContent='Become a member →';} }
 }
 function showWelcome(club){
   const m=document.getElementById('modal');
-  m.innerHTML=`<div class="center"><div style="font-size:42px">🧀</div><h3>Welcome to the club!</h3><p class="muted">Your <b>${esc(club.name)}</b> membership is active. Your first box is scheduled for <b>${nextCohort()?fmtMonth(nextCohort().month):'the next cohort'}</b>.</p></div>`;
-  const b=$(`<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px">Go to my membership →</button>`);
-  b.addEventListener('click',()=>{closeModal();go('/account');});
-  m.append(b);
+  m.innerHTML=`<div class="center"><div style="font-size:42px">🧀</div><h3>Welcome to the club!</h3><p class="muted">Your <b>${esc(club.name)}</b> membership is active. Your first order is scheduled for <b>${nextCohort()?fmtMonth(nextCohort().month):'the next cohort'}</b>.</p></div>`;
+  const b=$(`<button class="btn btn-primary" style="width:100%;margin-top:8px">Go to my membership →</button>`);
+  b.addEventListener('click',()=>{closeModal();go('/account');}); m.append(b);
   document.getElementById('modalBg').classList.add('show');
 }
 function closeModal(){document.getElementById('modalBg').classList.remove('show');}
@@ -442,7 +426,7 @@ function closeModal(){document.getElementById('modalBg').classList.remove('show'
 /* ====== VIEW: LOGIN ====== */
 function viewLogin(){
   const el=$(`<div class="wrap" style="padding:60px 0;max-width:460px"></div>`);
-  const card=$(`<div class="card"><h2 style="font-size:28px">Welcome back</h2><p class="muted" style="margin-top:0">Sign in to manage your membership.</p></div>`);
+  const card=$(`<div class="card"><h2 style="font-size:26px">Welcome back</h2><p class="muted" style="margin-top:0">Sign in to manage your membership.</p></div>`);
   const seg=$(`<div class="seg"><button class="on" data-m="login">Sign in</button><button data-m="signup">Create account</button></div>`);
   const form=$(`<div></div>`); card.append(seg);card.append(form);
   let mode='login';
@@ -451,67 +435,50 @@ function viewLogin(){
     if(mode==='login'){
       form.append($(`<label class="fld"><span>Email</span><input id="email" type="email"></label>`));
       form.append($(`<label class="fld"><span>Password</span><input id="pw" type="password"></label>`));
-      const b=$(`<button class="btn btn-primary" style="width:100%;justify-content:center">Sign in</button>`);
-      b.addEventListener('click',async()=>{b.disabled=true;try{await doLogin(form.querySelector('#email').value.trim(),form.querySelector('#pw').value);await onAuthed();go(S.member?.is_admin?'/admin':'/account');toast('Signed in.');}catch(e){toast(e.message,true);b.disabled=false;}});
+      const b=$(`<button class="btn btn-primary" style="width:100%">Sign in</button>`);
+      b.addEventListener('click',async()=>{b.disabled=true;try{await doLogin(form.querySelector('#email').value.trim(),form.querySelector('#pw').value);await onAuthed();go(S.member&&S.member.is_admin?'/admin':'/account');toast('Signed in.');}catch(e){toast(e.message,true);b.disabled=false;}});
       form.append(b);
     }else{
       form.append($(`<label class="fld"><span>Full name</span><input id="name"></label>`));
       form.append($(`<label class="fld"><span>Email</span><input id="email" type="email"></label>`));
       form.append($(`<label class="fld"><span>Phone</span><input id="phone" type="tel"></label>`));
       form.append($(`<label class="fld"><span>Password</span><input id="pw" type="password" placeholder="At least 8 characters"></label>`));
-      const b=$(`<button class="btn btn-primary" style="width:100%;justify-content:center">Create account</button>`);
+      const b=$(`<button class="btn btn-primary" style="width:100%">Create account</button>`);
       b.addEventListener('click',async()=>{b.disabled=true;try{await doSignup(form.querySelector('#email').value.trim(),form.querySelector('#pw').value,form.querySelector('#name').value.trim(),form.querySelector('#phone').value.trim());await onAuthed();go('/account');toast('Account created.');}catch(e){toast(e.message,true);b.disabled=false;}});
       form.append(b);
     }
   };
   seg.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');mode=btn.dataset.m;draw();}));
-  draw(); el.append(card);
-  return el;
+  draw(); el.append(card); return el;
 }
 
 /* ====== VIEW: ACCOUNT (member portal) ====== */
 async function viewAccount(){
-  const el=$(`<div class="wrap" style="padding:40px 0 70px"></div>`);
-  el.append($(`<h1>My Membership</h1><p class="muted" style="margin-top:-6px">Welcome back${S.member?.full_name?', '+esc(S.member.full_name.split(' ')[0]):''}.</p>`));
+  const el=$(`<div class="wrap" style="padding:34px 0 70px"></div>`);
+  el.append($(`<h1>My Membership</h1><p class="muted" style="margin-top:-6px">Welcome back${S.member&&S.member.full_name?', '+esc(S.member.full_name.split(' ')[0]):''}.</p>`));
   const {data:subs}=await sb.from('cc_subscriptions').select('*, cc_clubs(*), cc_fulfillment_options(*)').eq('member_id',S.session.user.id).order('created_at',{ascending:false});
-  const {data:orders}=await sb.from('cc_orders').select('*, cc_cohorts(*)').in('subscription_id',(subs||[]).map(s=>s.id).length?(subs||[]).map(s=>s.id):['00000000-0000-0000-0000-000000000000']);
-
+  const ids=(subs||[]).map(s=>s.id);
+  const {data:orders}=await sb.from('cc_orders').select('*, cc_cohorts(*)').in('subscription_id',ids.length?ids:['00000000-0000-0000-0000-000000000000']);
   const tabs=$(`<div class="tabs"><button class="on" data-t="subs">Subscriptions</button><button data-t="orders">Order history</button><button data-t="profile">Profile</button></div>`);
   const body=$(`<div></div>`); el.append(tabs);el.append(body);
   const drawSubs=()=>{
     body.innerHTML='';
-    if(!subs||!subs.length){ body.append($(`<div class="empty">You don't have any subscriptions yet.<br><br><a class="btn btn-primary" onclick="go('/')">Browse the clubs</a></div>`)); return; }
+    if(!subs||!subs.length){ body.append($(`<div class="empty">You don't have any subscriptions yet.<br><br><a class="btn btn-primary" onclick="go('/')">Browse the club</a></div>`)); return; }
     subs.forEach(s=>{
       const club=s.cc_clubs, ff=s.cc_fulfillment_options;
       const amount=club.monthly_price_cents+(ff?ff.surcharge_cents:0);
-      const card=$(`<div class="sub-card">
-        <div class="top">
-          <div><h3>${esc(club.name)}</h3>
-          <div class="muted" style="font-size:14px;margin-top:4px">${money2(amount)}/mo · ${esc(ff?ff.label:'—')}${s.is_gift?' · 🎁 Gift':''}</div></div>
-          <span class="pill ${s.status}">${s.status}</span>
-        </div>
-        ${s.status==='paused'&&s.paused_until?`<div class="note" style="margin-top:12px">Paused — resumes ${fmtMonth(s.paused_until)}.</div>`:''}
-        <div class="sub-actions"></div>
-      </div>`);
+      const card=$(`<div class="sub-card"><div class="top"><div><h3>${esc(club.name)}</h3><div class="muted" style="font-size:14px;margin-top:4px">${money2(amount)}/mo · ${esc(ff?ff.label:'—')}${s.is_gift?' · 🎁 Gift':''}</div></div><span class="pill ${s.status}">${s.status}</span></div>${s.status==='paused'&&s.paused_until?`<div class="note" style="margin-top:12px">Paused — resumes ${fmtMonth(s.paused_until)}.</div>`:''}<div class="sub-actions"></div></div>`);
       const acts=card.querySelector('.sub-actions');
-      if(s.status==='active'){
-        acts.append(actBtn('Skip next box','btn-ghost btn-sm',()=>skipNext(s)));
-        acts.append(actBtn('Pause','btn-ghost btn-sm',()=>pauseSub(s)));
-        acts.append(changeFulfillmentBtn(s));
-        acts.append(actBtn('Cancel','btn-danger btn-sm',()=>cancelSub(s)));
-      }else if(s.status==='paused'){
-        acts.append(actBtn('Resume','btn-primary btn-sm',()=>resumeSub(s)));
-        acts.append(actBtn('Cancel','btn-danger btn-sm',()=>cancelSub(s)));
-      }else{
-        acts.append(actBtn('Reactivate','btn-primary btn-sm',()=>reactivateSub(s)));
-      }
+      if(s.status==='active'){acts.append(actBtn('Skip next box','btn-ghost btn-sm',()=>skipNext(s)));acts.append(actBtn('Pause','btn-ghost btn-sm',()=>pauseSub(s)));acts.append(changeFulfillmentBtn(s));acts.append(actBtn('Cancel','btn-danger btn-sm',()=>cancelSub(s)));}
+      else if(s.status==='paused'){acts.append(actBtn('Resume','btn-primary btn-sm',()=>resumeSub(s)));acts.append(actBtn('Cancel','btn-danger btn-sm',()=>cancelSub(s)));}
+      else{acts.append(actBtn('Reactivate','btn-primary btn-sm',()=>reactivateSub(s)));}
       body.append(card);
     });
-    body.append($(`<div style="margin-top:10px"><a class="btn btn-ghost btn-sm" onclick="go('/')">+ Add another club</a></div>`));
+    body.append($(`<div style="margin-top:10px"><a class="btn btn-ghost btn-sm" onclick="go('/')">+ Add another membership</a></div>`));
   };
   const drawOrders=()=>{
     body.innerHTML='';
-    const list=(orders||[]).sort((a,b)=>(b.cc_cohorts?.month||'').localeCompare(a.cc_cohorts?.month||''));
+    const list=(orders||[]).sort((a,b)=>((b.cc_cohorts&&b.cc_cohorts.month)||'').localeCompare((a.cc_cohorts&&a.cc_cohorts.month)||''));
     if(!list.length){body.append($(`<div class="empty">No orders yet.</div>`));return;}
     const t=$(`<div class="table-scroll"><table><thead><tr><th>Cohort</th><th>Amount</th><th>Status</th><th>Fulfillment day</th></tr></thead><tbody></tbody></table></div>`);
     const tb=t.querySelector('tbody');
@@ -520,29 +487,25 @@ async function viewAccount(){
   };
   const drawProfile=()=>{
     body.innerHTML='';
-    const c=$(`<div class="card" style="max-width:520px">
-      <label class="fld"><span>Full name</span><input id="pf_name" value="${esc(S.member?.full_name||'')}"></label>
-      <label class="fld"><span>Phone</span><input id="pf_phone" value="${esc(S.member?.phone||'')}"></label>
-      <label class="fld"><span>Email</span><input value="${esc(S.member?.email||'')}" disabled></label>
-    </div>`);
+    const c=$(`<div class="card" style="max-width:520px"><label class="fld"><span>Full name</span><input id="pf_name" value="${esc(S.member&&S.member.full_name||'')}"></label><label class="fld"><span>Phone</span><input id="pf_phone" value="${esc(S.member&&S.member.phone||'')}"></label><label class="fld"><span>Email</span><input value="${esc(S.member&&S.member.email||'')}" disabled></label></div>`);
     const b=$(`<button class="btn btn-primary btn-sm" style="margin-top:4px">Save changes</button>`);
     b.addEventListener('click',async()=>{b.disabled=true;const {error}=await sb.from('cc_members').update({full_name:c.querySelector('#pf_name').value,phone:c.querySelector('#pf_phone').value}).eq('id',S.session.user.id);b.disabled=false;if(error)toast(error.message,true);else{toast('Profile saved.');await refreshMember();}});
     body.append(c);body.append(b);
   };
   tabs.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');({subs:drawSubs,orders:drawOrders,profile:drawProfile}[btn.dataset.t])();}));
-  drawSubs();
-  return el;
+  drawSubs(); return el;
 }
 function actBtn(label,cls,fn){const b=$(`<button class="btn ${cls}">${label}</button>`);b.addEventListener('click',()=>fn());return b;}
 function changeFulfillmentBtn(s){
   const b=$(`<button class="btn btn-ghost btn-sm">Change fulfillment</button>`);
   b.addEventListener('click',()=>{
+    const club=s.cc_clubs||S.clubs.find(c=>c.id===s.club_id); const opts=club?allowedFulfillment(club):S.fulfillment;
     const m=document.getElementById('modal');m.innerHTML=`<h3>Change fulfillment</h3><div class="radio-row" id="cf"></div>`;
     const cf=m.querySelector('#cf');let pick=s.fulfillment_option_id;
-    S.fulfillment.forEach(f=>{const o=$(`<label class="opt ${pick===f.id?'sel':''}"><input type="radio" ${pick===f.id?'checked':''}><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="amt">${f.surcharge_cents?'+'+money(f.surcharge_cents):'Included'}</div></label>`);o.addEventListener('click',()=>{pick=f.id;cf.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');});cf.append(o);});
-    const sv=$(`<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px">Save</button>`);
+    opts.forEach(f=>{const o=$(`<label class="opt ${pick===f.id?'sel':''}"><input type="radio" ${pick===f.id?'checked':''}><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="amt">${f.surcharge_cents?'+'+money(f.surcharge_cents):'Included'}</div></label>`);o.addEventListener('click',()=>{pick=f.id;cf.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');});cf.append(o);});
+    const sv=$(`<button class="btn btn-primary" style="width:100%;margin-top:14px">Save</button>`);
     sv.addEventListener('click',async()=>{await sb.from('cc_subscriptions').update({fulfillment_option_id:pick}).eq('id',s.id);closeModal();toast('Fulfillment updated.');render();});
-    m.append(sv);m.append($(`<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" onclick="closeModal()">Cancel</button>`));
+    m.append(sv);m.append($(`<button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Cancel</button>`));
     document.getElementById('modalBg').classList.add('show');
   });
   return b;
@@ -551,11 +514,11 @@ async function skipNext(s){const nc=nextCohort();if(!nc)return;const {data:o}=aw
 async function pauseSub(s){const d=new Date();d.setMonth(d.getMonth()+2);await sb.from('cc_subscriptions').update({status:'paused',paused_until:d.toISOString().slice(0,10)}).eq('id',s.id);toast('Membership paused.');render();}
 async function resumeSub(s){await sb.from('cc_subscriptions').update({status:'active',paused_until:null}).eq('id',s.id);toast('Membership resumed.');render();}
 async function reactivateSub(s){await sb.from('cc_subscriptions').update({status:'active',cancelled_at:null}).eq('id',s.id);toast('Membership reactivated.');render();}
-function cancelSub(s){const m=document.getElementById('modal');m.innerHTML=`<h3>Cancel membership?</h3><p class="muted">You'll keep access through any box already scheduled. You can reactivate anytime.</p>`;const b=$(`<button class="btn btn-danger" style="width:100%;justify-content:center">Yes, cancel</button>`);b.addEventListener('click',async()=>{await sb.from('cc_subscriptions').update({status:'cancelled',cancelled_at:new Date().toISOString()}).eq('id',s.id);closeModal();toast('Membership cancelled.');render();});m.append(b);m.append($(`<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" onclick="closeModal()">Keep my membership</button>`));document.getElementById('modalBg').classList.add('show');}
+function cancelSub(s){const m=document.getElementById('modal');m.innerHTML=`<h3>Cancel membership?</h3><p class="muted">You'll keep access through any order already scheduled. You can reactivate anytime.</p>`;const b=$(`<button class="btn btn-danger" style="width:100%">Yes, cancel</button>`);b.addEventListener('click',async()=>{await sb.from('cc_subscriptions').update({status:'cancelled',cancelled_at:new Date().toISOString()}).eq('id',s.id);closeModal();toast('Membership cancelled.');render();});m.append(b);m.append($(`<button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Keep my membership</button>`));document.getElementById('modalBg').classList.add('show');}
 
-/* ====== VIEW: ADMIN (partner portal) ====== */
+/* ====== VIEW: ADMIN ====== */
 async function viewAdmin(){
-  const el=$(`<div class="wrap" style="padding:40px 0 70px"></div>`);
+  const el=$(`<div class="wrap" style="padding:34px 0 70px"></div>`);
   el.append($(`<h1>Partner Portal</h1><p class="muted" style="margin-top:-6px">Greys Fine Cheeses · operator view</p>`));
   const [subsR,membersR,ordersR]=await Promise.all([
     sb.from('cc_subscriptions').select('*, cc_clubs(*), cc_members(*), cc_fulfillment_options(*)').order('created_at',{ascending:false}),
@@ -565,38 +528,24 @@ async function viewAdmin(){
   const subs=subsR.data||[], members=membersR.data||[], orders=ordersR.data||[];
   const active=subs.filter(s=>s.status==='active');
   const mrr=active.reduce((t,s)=>t+s.cc_clubs.monthly_price_cents+(s.cc_fulfillment_options?s.cc_fulfillment_options.surcharge_cents:0),0);
-  el.append($(`<div class="metrics">
-    <div class="metric"><div class="k">Active subscriptions</div><div class="v">${active.length}</div></div>
-    <div class="metric"><div class="k">Members</div><div class="v">${members.length}</div></div>
-    <div class="metric"><div class="k">Est. monthly revenue</div><div class="v">${money(mrr)}</div></div>
-    <div class="metric"><div class="k">Paused / cancelled</div><div class="v">${subs.filter(s=>s.status!=='active').length}</div></div>
-  </div>`));
-
+  el.append($(`<div class="metrics"><div class="metric"><div class="k">Active subscriptions</div><div class="v">${active.length}</div></div><div class="metric"><div class="k">Members</div><div class="v">${members.length}</div></div><div class="metric"><div class="k">Est. monthly revenue</div><div class="v">${money(mrr)}</div></div><div class="metric"><div class="k">Paused / cancelled</div><div class="v">${subs.filter(s=>s.status!=='active').length}</div></div></div>`));
   const tabs=$(`<div class="tabs"><button class="on" data-t="ov">Clubs</button><button data-t="subs">Subscriptions</button><button data-t="members">Members</button><button data-t="cohorts">Cohorts</button><button data-t="orders">Orders</button></div>`);
   const body=$(`<div></div>`);el.append(tabs);el.append(body);
-
-  const drawOv=()=>{body.innerHTML='';const g=$(`<div class="clubs"></div>`);
-    S.clubs.forEach(c=>{const n=active.filter(s=>s.club_id===c.id).length;g.append($(`<div class="club"><div class="swatch" style="background:${esc(c.accent)}"></div><h3 style="font-size:21px">${esc(c.name)}</h3><div class="price" style="font-size:30px">${money(c.monthly_price_cents)}<span>/mo</span></div><div class="muted" style="font-size:14px">${n} active member${n===1?'':'s'}</div></div>`));});
-    body.append(g);
-    body.append($(`<p class="note" style="margin-top:20px">Pricing is placeholder. Edit clubs, pricing, and fulfillment options in the Supabase tables <code>cc_clubs</code> and <code>cc_fulfillment_options</code> (or ask me to change them).</p>`));
-  };
+  const drawOv=()=>{body.innerHTML='';const g=$(`<div class="clubs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px"></div>`);
+    S.clubs.forEach(c=>{const n=active.filter(s=>s.club_id===c.id).length;g.append($(`<div class="card"><div style="height:6px;width:48px;border-radius:9px;background:${esc(c.accent)};margin-bottom:12px"></div><h3 style="font-size:19px">${esc(c.name)}</h3><div style="font:600 26px Fraunces">${money(c.monthly_price_cents)}<span style="font:500 14px Inter;color:var(--muted)">/mo</span></div><div class="muted" style="font-size:13px;margin-top:4px">${n} active member${n===1?'':'s'}</div></div>`));});
+    body.append(g);};
   const drawSubs=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Member</th><th>Club</th><th>Fulfillment</th><th>Status</th><th>Gift</th><th>Started</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
-    subs.forEach(s=>tb.append($(`<tr><td><b>${esc(s.cc_members?.full_name||s.cc_members?.email||'—')}</b><br><small class="muted">${esc(s.cc_members?.email||'')}</small></td><td>${esc(s.cc_clubs.name)}</td><td>${esc(s.cc_fulfillment_options?.label||'—')}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${s.is_gift?'🎁':''}</td><td>${new Date(s.started_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td></tr>`)));
-    if(!subs.length)tb.append($(`<tr><td colspan="6"><div class="empty">No subscriptions yet.</div></td></tr>`));
-    body.append(t);};
+    subs.forEach(s=>tb.append($(`<tr><td><b>${esc((s.cc_members&&(s.cc_members.full_name||s.cc_members.email))||'—')}</b><br><small class="muted">${esc((s.cc_members&&s.cc_members.email)||'')}</small></td><td>${esc(s.cc_clubs.name)}</td><td>${esc((s.cc_fulfillment_options&&s.cc_fulfillment_options.label)||'—')}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${s.is_gift?'🎁':''}</td><td>${new Date(s.started_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td></tr>`)));
+    if(!subs.length)tb.append($(`<tr><td colspan="6"><div class="empty">No subscriptions yet.</div></td></tr>`));body.append(t);};
   const drawMembers=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Subscriptions</th><th>Role</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
-    members.forEach(m=>{const n=subs.filter(s=>s.member_id===m.id).length;tb.append($(`<tr><td><b>${esc(m.full_name||'—')}</b></td><td>${esc(m.email)}</td><td>${esc(m.phone||'—')}</td><td>${n}</td><td>${m.is_admin?'<span class="pill paid">admin</span>':'member'}</td></tr>`));});
-    body.append(t);};
+    members.forEach(m=>{const n=subs.filter(s=>s.member_id===m.id).length;tb.append($(`<tr><td><b>${esc(m.full_name||'—')}</b></td><td>${esc(m.email)}</td><td>${esc(m.phone||'—')}</td><td>${n}</td><td>${m.is_admin?'<span class="pill paid">admin</span>':'member'}</td></tr>`));});body.append(t);};
   const drawCohorts=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Cohort</th><th>Order deadline</th><th>Modify by</th><th>Payout</th><th>Fulfillment day</th><th>Status</th><th>Orders</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');const fmt=d=>new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    S.cohorts.forEach(c=>{const n=orders.filter(o=>o.cohort_id===c.id&&o.status!=='skipped').length;tb.append($(`<tr><td><b>${fmtMonth(c.month)}</b></td><td>${fmt(c.order_deadline)}</td><td>${fmt(c.modification_deadline)}</td><td>${fmt(c.payout_date)}</td><td>${fmt(c.fulfillment_day)}</td><td><span class="pill ${c.status==='open'?'active':'scheduled'}">${c.status}</span></td><td>${n}</td></tr>`));});
-    body.append(t);};
+    S.cohorts.forEach(c=>{const n=orders.filter(o=>o.cohort_id===c.id&&o.status!=='skipped').length;tb.append($(`<tr><td><b>${fmtMonth(c.month)}</b></td><td>${fmt(c.order_deadline)}</td><td>${fmt(c.modification_deadline)}</td><td>${fmt(c.payout_date)}</td><td>${fmt(c.fulfillment_day)}</td><td><span class="pill ${c.status==='open'?'active':'scheduled'}">${c.status}</span></td><td>${n}</td></tr>`));});body.append(t);};
   const drawOrders=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Member</th><th>Club</th><th>Cohort</th><th>Amount</th><th>Status</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
-    orders.sort((a,b)=>(b.cc_cohorts?.month||'').localeCompare(a.cc_cohorts?.month||'')).forEach(o=>tb.append($(`<tr><td>${esc(o.cc_subscriptions?.cc_members?.full_name||o.cc_subscriptions?.cc_members?.email||'—')}</td><td>${esc(o.cc_subscriptions?.cc_clubs?.name||'—')}</td><td>${o.cc_cohorts?fmtMonth(o.cc_cohorts.month):'—'}</td><td>${money2(o.amount_cents)}</td><td><span class="pill ${o.status}">${o.status}</span></td></tr>`)));
-    if(!orders.length)tb.append($(`<tr><td colspan="5"><div class="empty">No orders yet.</div></td></tr>`));
-    body.append(t);};
+    orders.sort((a,b)=>(((b.cc_cohorts&&b.cc_cohorts.month)||'').localeCompare((a.cc_cohorts&&a.cc_cohorts.month)||''))).forEach(o=>tb.append($(`<tr><td>${esc((o.cc_subscriptions&&o.cc_subscriptions.cc_members&&(o.cc_subscriptions.cc_members.full_name||o.cc_subscriptions.cc_members.email))||'—')}</td><td>${esc((o.cc_subscriptions&&o.cc_subscriptions.cc_clubs&&o.cc_subscriptions.cc_clubs.name)||'—')}</td><td>${o.cc_cohorts?fmtMonth(o.cc_cohorts.month):'—'}</td><td>${money2(o.amount_cents)}</td><td><span class="pill ${o.status}">${o.status}</span></td></tr>`)));
+    if(!orders.length)tb.append($(`<tr><td colspan="5"><div class="empty">No orders yet.</div></td></tr>`));body.append(t);};
   tabs.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');({ov:drawOv,subs:drawSubs,members:drawMembers,cohorts:drawCohorts,orders:drawOrders}[btn.dataset.t])();}));
-  drawOv();
-  return el;
+  drawOv(); return el;
 }
 function viewNoAdmin(){return $(`<div class="wrap" style="padding:60px 0"><div class="empty">This area is for store operators only.<br><br><a class="btn btn-primary" onclick="go('/account')">Go to my membership</a></div></div>`);}
 
