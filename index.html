@@ -492,7 +492,10 @@ async function completeCheckout(club, btn){
     const {data:sub,error}=await sb.from('cc_subscriptions').insert(rec).select().single();
     if(error) throw error;
     const nc=nextCohort();
-    if(nc){ await sb.from('cc_orders').insert({subscription_id:sub.id,cohort_id:nc.id,amount_cents:amount,status:'scheduled'}); }
+    if(nc){
+      const {data:ord}=await sb.from('cc_orders').insert({subscription_id:sub.id,cohort_id:nc.id,amount_cents:amount,status:'scheduled'}).select().single();
+      if(ord && type==='shipping'){ try{ const {data:{session}}=await sb.auth.getSession(); fetch(SUPABASE_URL+'/functions/v1/cc-shipstation',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'sync_order',order_id:ord.id})}); }catch(e){} }
+    }
     S.draft=null; showWelcome(club);
   }catch(e){ toast(e.message||'Something went wrong.',true); if(btn){btn.disabled=false;btn.textContent='Become a member →';} }
 }
