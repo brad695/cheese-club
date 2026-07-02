@@ -335,9 +335,10 @@ function viewJoin(slug){
   el.append($(`<a class="muted" style="cursor:pointer;font-size:14px" onclick="go('/')">← All memberships</a>`));
   el.append($(`<h1 style="margin:14px 0 4px">Join ${esc(club.name)}</h1><p class="muted" style="margin-top:0;max-width:64ch">${esc(club.description||'')}</p>`));
 
+  if(!S.draft.address) S.draft.address={name:'',street:'',city:'',state:'',zip:''};
   const grid=$(`<div class="grid2" style="margin-top:24px"></div>`);
   const left=$(`<div></div>`);
-  const fcard=$(`<div class="card" style="margin-bottom:22px"><h3 style="font-size:19px">How would you like to receive it?</h3>${mfOnly(club)?'<p class="muted" style="font-size:13px;margin-top:0">This membership is available for pickup in Memphis & Franklin only.</p>':''}<div class="radio-row" id="ffr"></div></div>`);
+  const fcard=$(`<div class="card" style="margin-bottom:22px"><h3 style="font-size:19px">How would you like to receive it?</h3>${mfOnly(club)?'<p class="muted" style="font-size:13px;margin-top:0">This membership is pickup in Memphis & Franklin only.</p>':''}<div class="radio-row" id="ffr"></div></div>`);
   const ffr=fcard.querySelector('#ffr');
   ffOpts.forEach(f=>{
     if(f.coming_soon){
@@ -345,17 +346,61 @@ function viewJoin(slug){
       return;
     }
     const sel=S.draft.fulfillment_id===f.id;
-    const o=$(`<label class="opt ${sel?'sel':''}"><input type="radio" name="ff" ${sel?'checked':''}><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="amt">${f.surcharge_cents?'+'+money(f.surcharge_cents):'Included'}</div></label>`);
-    o.addEventListener('click',()=>{S.draft.fulfillment_id=f.id; el.replaceWith(viewJoin(slug));});
+    const amt = f.type==='shipping' ? 'Live rates' : (f.surcharge_cents?'+'+money(f.surcharge_cents):'Included');
+    const o=$(`<label class="opt ${sel?'sel':''}"><input type="radio" name="ff" ${sel?'checked':''}><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="amt">${amt}</div></label>`);
+    o.addEventListener('click',()=>{S.draft.fulfillment_id=f.id; S.draft.rate=null; S.draft.rates=null; el.replaceWith(viewJoin(slug));});
     ffr.append(o);
   });
   left.append(fcard);
   const ff=ffOpts.find(x=>x.id===S.draft.fulfillment_id);
-  if(ff&&ff.type==='delivery'){
-    const d=$(`<div class="card" style="margin-bottom:22px"><label class="fld"><span>Delivery instructions (optional)</span><textarea rows="2" id="dins">${esc(S.draft.delivery_instructions)}</textarea></label></div>`);
-    d.querySelector('#dins').addEventListener('input',e=>S.draft.delivery_instructions=e.target.value);
-    left.append(d);
+  const ffType = ff?ff.type:'pickup';
+
+  if(ff && (ffType==='delivery'||ffType==='shipping')){
+    const A=S.draft.address;
+    const ac=$(`<div class="card" style="margin-bottom:22px"><h3 style="font-size:19px">${ffType==='shipping'?'Shipping address':'Delivery address'}</h3><div id="addrf"></div></div>`);
+    const af=ac.querySelector('#addrf');
+    const mk=(id,label,type)=>{const l=$(`<label class="fld"><span>${label}</span><input id="af_${id}" ${type?`type="${type}"`:''} value="${esc(A[id]||'')}"></label>`);l.querySelector('input').addEventListener('input',e=>{A[id]=e.target.value;});return l;};
+    af.append(mk('name','Full name'));
+    af.append(mk('street','Street address'));
+    const row=$(`<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px"></div>`);
+    row.append(mk('city','City')); row.append(mk('state','State')); row.append(mk('zip','ZIP'));
+    af.append(row);
+    if(ffType==='delivery'){
+      const d=$(`<label class="fld"><span>Delivery instructions (optional)</span><textarea rows="2" id="dins">${esc(S.draft.delivery_instructions)}</textarea></label>`);
+      d.querySelector('#dins').addEventListener('input',e=>S.draft.delivery_instructions=e.target.value);
+      af.append(d);
+    }
+    if(ffType==='shipping'){
+      const rb=$(`<button class="btn btn-ghost btn-sm" style="margin-top:2px">Get shipping rates</button>`);
+      rb.addEventListener('click',async()=>{
+        if(!A.zip){toast("Enter a ZIP first.",true);return;}
+        rb.disabled=true;rb.textContent='Getting rates…';
+        try{
+          const r=await fetch(SUPABASE_URL+'/functions/v1/cc-shipstation',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY},body:JSON.stringify({action:'rate',to_zip:A.zip,to_state:A.state,to_city:A.city,weight_lb:club.ship_weight_lb||3})});
+          const j=await r.json();
+          if(j.configured===false){toast("Shipping isn't set up yet.",true);}
+          else if(!j.ok||!j.rates){toast(j.error||'Could not get rates.',true);}
+          else{S.draft.rates=j.rates;S.draft.rate=null;el.replaceWith(viewJoin(slug));return;}
+        }catch(e){toast('Could not get rates.',true);}
+        rb.disabled=false;rb.textContent='Get shipping rates';
+      });
+      af.append(rb);
+      if(S.draft.rates){
+        const rl=$(`<div class="radio-row" style="margin-top:14px"></div>`);
+        if(!S.draft.rates.length) rl.append($(`<div class="muted" style="font-size:13px">No rates found for that address.</div>`));
+        S.draft.rates.forEach(rt=>{
+          const sel=S.draft.rate&&S.draft.rate.service_code===rt.service_code;
+          const d=rt.days?('Est. '+esc(String(rt.days))+(/^\d+$/.test(String(rt.days))?' days':'')):'';
+          const o=$(`<label class="opt ${sel?'sel':''}"><input type="radio" ${sel?'checked':''}><div class="meta"><b>${esc(rt.carrier)} · ${esc(rt.service)}</b><small>${d}</small></div><div class="amt">${money2(rt.amount_cents)}</div></label>`);
+          o.addEventListener('click',()=>{S.draft.rate=rt;el.replaceWith(viewJoin(slug));});
+          rl.append(o);
+        });
+        af.append(rl);
+      }
+    }
+    left.append(ac);
   }
+
   const gcard=$(`<div class="card" style="margin-bottom:22px"><label class="opt ${S.draft.is_gift?'sel':''}"><input type="checkbox" id="giftck" ${S.draft.is_gift?'checked':''}><div class="meta"><b>This is a gift 🎁</b><small>We'll send the recipient a welcome note.</small></div></label><div id="giftfields"></div></div>`);
   gcard.querySelector('#giftck').addEventListener('change',e=>{S.draft.is_gift=e.target.checked; el.replaceWith(viewJoin(slug));});
   if(S.draft.is_gift){
@@ -372,13 +417,14 @@ function viewJoin(slug){
   renderJoinAuth(authCard, club, slug);
   grid.append(left);
 
-  const surcharge = ff?ff.surcharge_cents:0;
-  const total = club.monthly_price_cents+surcharge;
+  const fee = ffType==='delivery'?(ff.surcharge_cents||0):(ffType==='shipping'?((S.draft.rate&&S.draft.rate.amount_cents)||0):0);
+  const total = club.monthly_price_cents+fee;
+  const feeLabel = ffType==='shipping' ? (S.draft.rate?money2(fee):'Address & rate needed') : (fee?money2(fee):'Included');
   const nc=nextCohort();
   const right=$(`<div><div class="card summary">
     <h3 style="font-size:19px">Order summary</h3>
     <div class="row"><span>${esc(club.name)}</span><span>${money2(club.monthly_price_cents)}</span></div>
-    <div class="row"><span>${esc(ff?ff.label:'Fulfillment')}</span><span>${surcharge?money2(surcharge):'Included'}</span></div>
+    <div class="row"><span>${esc(ff?ff.label:'Fulfillment')}${ffType==='shipping'&&S.draft.rate?' ('+esc(S.draft.rate.service)+')':''}</span><span>${feeLabel}</span></div>
     <div class="row total"><span>Per month</span><span>${money2(total)}</span></div>
     <p class="muted" style="font-size:13px;margin:14px 0 0">First order: <b>${nc?fmtMonth(nc.month):'next cohort'}</b>. Billed monthly. Pause, skip, or cancel anytime.</p>
   </div></div>`);
@@ -418,7 +464,15 @@ function renderJoinAuth(card, club, slug){
   }
 }
 async function completeCheckout(club, btn){
+  const ff=S.fulfillment.find(x=>x.id===S.draft.fulfillment_id);
+  const type=ff?ff.type:'pickup';
+  const A=S.draft.address||{};
+  if(type==='delivery'||type==='shipping'){
+    if(!A.name||!A.street||!A.city||!A.state||!A.zip){toast('Please enter your full '+(type==='shipping'?'shipping':'delivery')+' address.',true);return;}
+  }
+  if(type==='shipping' && !(S.draft.rate&&S.draft.rate.amount_cents)){toast('Please choose a shipping rate.',true);return;}
   if(btn){btn.disabled=true;btn.textContent='Starting…';}
+  const fee = type==='delivery'?(ff.surcharge_cents||0):(type==='shipping'?S.draft.rate.amount_cents:0);
   if(STRIPE_ENABLED){
     try{
       const {data:{session}}=await sb.auth.getSession();
@@ -427,9 +481,11 @@ async function completeCheckout(club, btn){
     }catch(e){}
   }
   try{
-    const ff=S.fulfillment.find(x=>x.id===S.draft.fulfillment_id);
-    const amount=club.monthly_price_cents+(ff?ff.surcharge_cents:0);
-    const {data:sub,error}=await sb.from('cc_subscriptions').insert({member_id:S.session.user.id,club_id:club.id,fulfillment_option_id:S.draft.fulfillment_id,delivery_instructions:S.draft.delivery_instructions||null,is_gift:S.draft.is_gift,gift_sender_name:S.draft.is_gift?S.draft.gift_sender_name:null,gift_recipient_email:S.draft.is_gift?S.draft.gift_recipient_email:null,gift_note:S.draft.is_gift?S.draft.gift_note:null}).select().single();
+    const amount=club.monthly_price_cents+fee;
+    const rec={member_id:S.session.user.id,club_id:club.id,fulfillment_option_id:S.draft.fulfillment_id,delivery_instructions:S.draft.delivery_instructions||null,is_gift:S.draft.is_gift,gift_sender_name:S.draft.is_gift?S.draft.gift_sender_name:null,gift_recipient_email:S.draft.is_gift?S.draft.gift_recipient_email:null,gift_note:S.draft.is_gift?S.draft.gift_note:null};
+    if(type==='delivery'||type==='shipping'){rec.ship_name=A.name;rec.ship_street=A.street;rec.ship_city=A.city;rec.ship_state=A.state;rec.ship_zip=A.zip;rec.delivery_address=[A.street,A.city,A.state,A.zip].filter(Boolean).join(', ');}
+    if(type==='shipping'){rec.ship_carrier=S.draft.rate.carrier;rec.ship_service=S.draft.rate.service;rec.ship_amount_cents=S.draft.rate.amount_cents;}
+    const {data:sub,error}=await sb.from('cc_subscriptions').insert(rec).select().single();
     if(error) throw error;
     const nc=nextCohort();
     if(nc){ await sb.from('cc_orders').insert({subscription_id:sub.id,cohort_id:nc.id,amount_cents:amount,status:'scheduled'}); }
@@ -521,8 +577,8 @@ function actBtn(label,cls,fn){const b=$(`<button class="btn ${cls}">${label}</bu
 function changeFulfillmentBtn(s){
   const b=$(`<button class="btn btn-ghost btn-sm">Change fulfillment</button>`);
   b.addEventListener('click',()=>{
-    const club=s.cc_clubs||S.clubs.find(c=>c.id===s.club_id); const opts=club?allowedFulfillment(club):S.fulfillment;
-    const m=document.getElementById('modal');m.innerHTML=`<h3>Change fulfillment</h3><div class="radio-row" id="cf"></div>`;
+    const club=s.cc_clubs||S.clubs.find(c=>c.id===s.club_id); const opts=(club?allowedFulfillment(club):S.fulfillment).filter(f=>f.type==='pickup'&&!f.coming_soon);
+    const m=document.getElementById('modal');m.innerHTML=`<h3>Change pickup location</h3><p class="muted" style="font-size:13px;margin-top:0">To switch to delivery or shipping, start a new membership.</p><div class="radio-row" id="cf"></div>`;
     const cf=m.querySelector('#cf');let pick=s.fulfillment_option_id;
     opts.forEach(f=>{if(f.coming_soon){cf.append($(`<label class="opt disabled"><input type="radio" disabled><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="soon">Coming soon</div></label>`));return;}const o=$(`<label class="opt ${pick===f.id?'sel':''}"><input type="radio" ${pick===f.id?'checked':''}><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="amt">${f.surcharge_cents?'+'+money(f.surcharge_cents):'Included'}</div></label>`);o.addEventListener('click',()=>{pick=f.id;cf.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');});cf.append(o);});
     const sv=$(`<button class="btn btn-primary" style="width:100%;margin-top:14px">Save</button>`);
