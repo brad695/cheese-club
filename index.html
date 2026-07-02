@@ -207,8 +207,8 @@ const $ = (h)=>{const t=document.createElement('template');t.innerHTML=h.trim();
 function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',3200);}
 function go(path){location.hash = '#'+path;}
 function esc(s){return (s==null?'':s).toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function mfOnly(club){return (club.availability||'').toLowerCase().includes('memphis and franklin');}
-function allowedFulfillment(club){ return mfOnly(club) ? S.fulfillment.filter(f=>f.type==='pickup'&&/memphis|franklin/i.test(f.label)) : S.fulfillment; }
+function mfOnly(club){return !!club.pickup_only;}
+function allowedFulfillment(club){ return club.pickup_only ? S.fulfillment.filter(f=>f.type==='pickup') : S.fulfillment; }
 
 /* ====== DATA ====== */
 async function loadCatalog(){
@@ -340,7 +340,7 @@ function viewJoin(slug){
   if(!S.draft.address) S.draft.address={name:'',street:'',city:'',state:'',zip:''};
   const grid=$(`<div class="grid2" style="margin-top:24px"></div>`);
   const left=$(`<div></div>`);
-  const fcard=$(`<div class="card" style="margin-bottom:22px"><h3 style="font-size:19px">How would you like to receive it?</h3>${mfOnly(club)?'<p class="muted" style="font-size:13px;margin-top:0">This membership is pickup in Memphis & Franklin only.</p>':''}<div class="radio-row" id="ffr"></div></div>`);
+  const fcard=$(`<div class="card" style="margin-bottom:22px"><h3 style="font-size:19px">How would you like to receive it?</h3>${mfOnly(club)?'<p class="muted" style="font-size:13px;margin-top:0">This membership is in-store pickup only (21+).</p>':''}<div class="radio-row" id="ffr"></div></div>`);
   const ffr=fcard.querySelector('#ffr');
   ffOpts.forEach(f=>{
     if(f.coming_soon){
@@ -630,7 +630,7 @@ async function viewAdmin(){
       const cell=tr.querySelector('.lblcell');
       if(fft==='shipping'){
         if(o.label_url){cell.append($(`<a class="btn btn-ghost btn-sm" href="${esc(o.label_url)}" target="_blank">View label</a>`)); if(o.tracking_number)cell.append($(`<div class="muted" style="font-size:11px;margin-top:4px">${esc(o.tracking_number)}</div>`));}
-        else{const b=$(`<button class="btn btn-primary btn-sm">Create label</button>`);b.addEventListener('click',()=>createLabel(o,b));cell.append(b);}
+        else{const wrap=$(`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select class="lblorigin" style="padding:6px 8px;border:1.5px solid var(--line);border-radius:8px;font-size:12px"><option value="memphis">Ship from Memphis</option><option value="nashville">Ship from Nashville</option></select></div>`);const b=$(`<button class="btn btn-primary btn-sm">Create label</button>`);b.addEventListener('click',()=>createLabel(o,b,wrap.querySelector('.lblorigin').value));wrap.append(b);cell.append(wrap);}
       }else{cell.append($(`<span class="muted" style="font-size:12px">${fft==='delivery'?'Local delivery':(fft==='pickup'?'Pickup':'—')}</span>`));}
       tb.append(tr);
     });
@@ -638,11 +638,11 @@ async function viewAdmin(){
   tabs.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');({ov:drawOv,subs:drawSubs,members:drawMembers,cohorts:drawCohorts,orders:drawOrders}[btn.dataset.t])();}));
   drawOv(); return el;
 }
-async function createLabel(o, btn){
+async function createLabel(o, btn, origin){
   btn.disabled=true;btn.textContent='Creating…';
   try{
     const {data:{session}}=await sb.auth.getSession();
-    const r=await fetch(SUPABASE_URL+'/functions/v1/cc-shipstation',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'label',order_id:o.id})});
+    const r=await fetch(SUPABASE_URL+'/functions/v1/cc-shipstation',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'label',order_id:o.id,origin:origin||'memphis'})});
     const j=await r.json();
     if(j.configured===false){toast('ShipStation is not configured.',true);}
     else if(!j.ok){toast(j.error||'Could not create label.',true);}
