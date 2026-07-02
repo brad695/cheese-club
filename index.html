@@ -114,6 +114,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)}
 .opt{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
 .opt:hover{border-color:#cdd6cf}
 .opt.sel{border-color:var(--green);background:#f4f9f5}
+.opt.disabled{opacity:.65;cursor:not-allowed;background:#faf9f6}
+.opt.disabled:hover{border-color:var(--line)}
+.opt .soon{font-weight:600;color:var(--muted);font-size:12px;background:#efece6;border-radius:99px;padding:4px 10px;white-space:nowrap}
 .opt input{width:auto}
 .opt .meta{flex:1}
 .opt .meta b{font-size:15px}
@@ -310,7 +313,8 @@ function viewHome(){
   </ul></div>`));
   const nc=nextCohort();
   el.append($(`<div class="homesec" style="margin-bottom:70px"><h2>What you need to know</h2><div class="know" style="justify-content:center">
-    <div><b>Pickup & delivery</b><span>Memphis, Nashville & Franklin</span></div>
+    <div><b>Pickup</b><span>Memphis, Nashville & Franklin</span></div>
+    <div><b>Delivery</b><span>Coming soon</span></div>
     <div><b>Next order</b><span>${nc?fmtMonth(nc.month):'—'}</span></div>
     <div><b>Flexibility</b><span>Pause or cancel any time</span></div>
   </div></div>`));
@@ -324,7 +328,8 @@ function viewJoin(slug){
   if(!club){return $(`<div class="wrap" style="padding:60px 0"><div class="empty">Club not found. <a onclick="go('/')">Back to the club</a></div></div>`);}
   const ffOpts = allowedFulfillment(club);
   if(!S.draft || S.draft.club_id!==club.id){
-    S.draft={club_id:club.id, fulfillment_id:(ffOpts[0]||{}).id, is_gift:false, gift_sender_name:'', gift_recipient_email:'', gift_note:'', delivery_instructions:''};
+    const firstSel=(ffOpts.find(f=>!f.coming_soon)||ffOpts[0]||{}).id;
+    S.draft={club_id:club.id, fulfillment_id:firstSel, is_gift:false, gift_sender_name:'', gift_recipient_email:'', gift_note:'', delivery_instructions:''};
   }
   const el=$(`<div class="wrap" style="padding:34px 0 70px"></div>`);
   el.append($(`<a class="muted" style="cursor:pointer;font-size:14px" onclick="go('/')">← All memberships</a>`));
@@ -335,6 +340,10 @@ function viewJoin(slug){
   const fcard=$(`<div class="card" style="margin-bottom:22px"><h3 style="font-size:19px">How would you like to receive it?</h3>${mfOnly(club)?'<p class="muted" style="font-size:13px;margin-top:0">This membership is available for pickup in Memphis & Franklin only.</p>':''}<div class="radio-row" id="ffr"></div></div>`);
   const ffr=fcard.querySelector('#ffr');
   ffOpts.forEach(f=>{
+    if(f.coming_soon){
+      ffr.append($(`<label class="opt disabled"><input type="radio" disabled><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="soon">Coming soon</div></label>`));
+      return;
+    }
     const sel=S.draft.fulfillment_id===f.id;
     const o=$(`<label class="opt ${sel?'sel':''}"><input type="radio" name="ff" ${sel?'checked':''}><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="amt">${f.surcharge_cents?'+'+money(f.surcharge_cents):'Included'}</div></label>`);
     o.addEventListener('click',()=>{S.draft.fulfillment_id=f.id; el.replaceWith(viewJoin(slug));});
@@ -515,7 +524,7 @@ function changeFulfillmentBtn(s){
     const club=s.cc_clubs||S.clubs.find(c=>c.id===s.club_id); const opts=club?allowedFulfillment(club):S.fulfillment;
     const m=document.getElementById('modal');m.innerHTML=`<h3>Change fulfillment</h3><div class="radio-row" id="cf"></div>`;
     const cf=m.querySelector('#cf');let pick=s.fulfillment_option_id;
-    opts.forEach(f=>{const o=$(`<label class="opt ${pick===f.id?'sel':''}"><input type="radio" ${pick===f.id?'checked':''}><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="amt">${f.surcharge_cents?'+'+money(f.surcharge_cents):'Included'}</div></label>`);o.addEventListener('click',()=>{pick=f.id;cf.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');});cf.append(o);});
+    opts.forEach(f=>{if(f.coming_soon){cf.append($(`<label class="opt disabled"><input type="radio" disabled><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="soon">Coming soon</div></label>`));return;}const o=$(`<label class="opt ${pick===f.id?'sel':''}"><input type="radio" ${pick===f.id?'checked':''}><div class="meta"><b>${esc(f.label)}</b><small>${esc(f.address||'')}</small></div><div class="amt">${f.surcharge_cents?'+'+money(f.surcharge_cents):'Included'}</div></label>`);o.addEventListener('click',()=>{pick=f.id;cf.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');});cf.append(o);});
     const sv=$(`<button class="btn btn-primary" style="width:100%;margin-top:14px">Save</button>`);
     sv.addEventListener('click',async()=>{await sb.from('cc_subscriptions').update({fulfillment_option_id:pick}).eq('id',s.id);closeModal();toast('Fulfillment updated.');render();});
     m.append(sv);m.append($(`<button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Cancel</button>`));
