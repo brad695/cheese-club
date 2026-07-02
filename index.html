@@ -488,7 +488,7 @@ async function completeCheckout(club, btn){
     const amount=pricing(club.monthly_price_cents+fee).total;
     const rec={member_id:S.session.user.id,club_id:club.id,fulfillment_option_id:S.draft.fulfillment_id,delivery_instructions:S.draft.delivery_instructions||null,is_gift:S.draft.is_gift,gift_sender_name:S.draft.is_gift?S.draft.gift_sender_name:null,gift_recipient_email:S.draft.is_gift?S.draft.gift_recipient_email:null,gift_note:S.draft.is_gift?S.draft.gift_note:null};
     if(type==='delivery'||type==='shipping'){rec.ship_name=A.name;rec.ship_street=A.street;rec.ship_city=A.city;rec.ship_state=A.state;rec.ship_zip=A.zip;rec.delivery_address=[A.street,A.city,A.state,A.zip].filter(Boolean).join(', ');}
-    if(type==='shipping'){rec.ship_carrier=S.draft.rate.carrier;rec.ship_service=S.draft.rate.service;rec.ship_amount_cents=S.draft.rate.amount_cents;}
+    if(type==='shipping'){rec.ship_carrier=S.draft.rate.carrier;rec.ship_service=S.draft.rate.service;rec.ship_amount_cents=S.draft.rate.amount_cents;rec.ship_carrier_id=S.draft.rate.carrier_id;rec.ship_service_code=S.draft.rate.service_code;}
     const {data:sub,error}=await sb.from('cc_subscriptions').insert(rec).select().single();
     if(error) throw error;
     const nc=nextCohort();
@@ -605,7 +605,7 @@ async function viewAdmin(){
   const [subsR,membersR,ordersR]=await Promise.all([
     sb.from('cc_subscriptions').select('*, cc_clubs(*), cc_members(*), cc_fulfillment_options(*)').order('created_at',{ascending:false}),
     sb.from('cc_members').select('*').order('created_at',{ascending:false}),
-    sb.from('cc_orders').select('*, cc_cohorts(*), cc_subscriptions(*, cc_clubs(*), cc_members(*))')
+    sb.from('cc_orders').select('*, cc_cohorts(*), cc_subscriptions(*, cc_clubs(*), cc_members(*), cc_fulfillment_options(type,label))')
   ]);
   const subs=subsR.data||[], members=membersR.data||[], orders=ordersR.data||[];
   const active=subs.filter(s=>s.status==='active');
@@ -623,11 +623,32 @@ async function viewAdmin(){
     members.forEach(m=>{const n=subs.filter(s=>s.member_id===m.id).length;tb.append($(`<tr><td><b>${esc(m.full_name||'—')}</b></td><td>${esc(m.email)}</td><td>${esc(m.phone||'—')}</td><td>${n}</td><td>${m.is_admin?'<span class="pill paid">admin</span>':'member'}</td></tr>`));});body.append(t);};
   const drawCohorts=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Cohort</th><th>Order deadline</th><th>Modify by</th><th>Payout</th><th>Fulfillment day</th><th>Status</th><th>Orders</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');const fmt=d=>new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
     S.cohorts.forEach(c=>{const n=orders.filter(o=>o.cohort_id===c.id&&o.status!=='skipped').length;tb.append($(`<tr><td><b>${fmtMonth(c.month)}</b></td><td>${fmt(c.order_deadline)}</td><td>${fmt(c.modification_deadline)}</td><td>${fmt(c.payout_date)}</td><td>${fmt(c.fulfillment_day)}</td><td><span class="pill ${c.status==='open'?'active':'scheduled'}">${c.status}</span></td><td>${n}</td></tr>`));});body.append(t);};
-  const drawOrders=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Member</th><th>Club</th><th>Cohort</th><th>Amount</th><th>Status</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
-    orders.sort((a,b)=>(((b.cc_cohorts&&b.cc_cohorts.month)||'').localeCompare((a.cc_cohorts&&a.cc_cohorts.month)||''))).forEach(o=>tb.append($(`<tr><td>${esc((o.cc_subscriptions&&o.cc_subscriptions.cc_members&&(o.cc_subscriptions.cc_members.full_name||o.cc_subscriptions.cc_members.email))||'—')}</td><td>${esc((o.cc_subscriptions&&o.cc_subscriptions.cc_clubs&&o.cc_subscriptions.cc_clubs.name)||'—')}</td><td>${o.cc_cohorts?fmtMonth(o.cc_cohorts.month):'—'}</td><td>${money2(o.amount_cents)}</td><td><span class="pill ${o.status}">${o.status}</span></td></tr>`)));
-    if(!orders.length)tb.append($(`<tr><td colspan="5"><div class="empty">No orders yet.</div></td></tr>`));body.append(t);};
+  const drawOrders=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Member</th><th>Club</th><th>Cohort</th><th>Amount</th><th>Status</th><th>Shipping</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
+    orders.sort((a,b)=>(((b.cc_cohorts&&b.cc_cohorts.month)||'').localeCompare((a.cc_cohorts&&a.cc_cohorts.month)||''))).forEach(o=>{
+      const sub=o.cc_subscriptions||{}; const fft=sub.cc_fulfillment_options&&sub.cc_fulfillment_options.type;
+      const tr=$(`<tr><td>${esc((sub.cc_members&&(sub.cc_members.full_name||sub.cc_members.email))||'—')}</td><td>${esc((sub.cc_clubs&&sub.cc_clubs.name)||'—')}</td><td>${o.cc_cohorts?fmtMonth(o.cc_cohorts.month):'—'}</td><td>${money2(o.amount_cents)}</td><td><span class="pill ${o.status}">${o.status}</span></td><td class="lblcell"></td></tr>`);
+      const cell=tr.querySelector('.lblcell');
+      if(fft==='shipping'){
+        if(o.label_url){cell.append($(`<a class="btn btn-ghost btn-sm" href="${esc(o.label_url)}" target="_blank">View label</a>`)); if(o.tracking_number)cell.append($(`<div class="muted" style="font-size:11px;margin-top:4px">${esc(o.tracking_number)}</div>`));}
+        else{const b=$(`<button class="btn btn-primary btn-sm">Create label</button>`);b.addEventListener('click',()=>createLabel(o,b));cell.append(b);}
+      }else{cell.append($(`<span class="muted" style="font-size:12px">${fft==='delivery'?'Local delivery':(fft==='pickup'?'Pickup':'—')}</span>`));}
+      tb.append(tr);
+    });
+    if(!orders.length)tb.append($(`<tr><td colspan="6"><div class="empty">No orders yet.</div></td></tr>`));body.append(t);};
   tabs.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');({ov:drawOv,subs:drawSubs,members:drawMembers,cohorts:drawCohorts,orders:drawOrders}[btn.dataset.t])();}));
   drawOv(); return el;
+}
+async function createLabel(o, btn){
+  btn.disabled=true;btn.textContent='Creating…';
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    const r=await fetch(SUPABASE_URL+'/functions/v1/cc-shipstation',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'label',order_id:o.id})});
+    const j=await r.json();
+    if(j.configured===false){toast('ShipStation is not configured.',true);}
+    else if(!j.ok){toast(j.error||'Could not create label.',true);}
+    else{ if(j.label_url) window.open(j.label_url,'_blank'); toast('Label created'+(j.tracking?' · '+j.tracking:'')+'.'); render(); return; }
+  }catch(e){toast('Could not create label.',true);}
+  btn.disabled=false;btn.textContent='Create label';
 }
 function viewNoAdmin(){return $(`<div class="wrap" style="padding:60px 0"><div class="empty">This area is for store operators only.<br><br><a class="btn btn-primary" onclick="go('/account')">Go to my membership</a></div></div>`);}
 
