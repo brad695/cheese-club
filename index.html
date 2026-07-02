@@ -44,6 +44,29 @@ header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);bac
 .stars{color:var(--gold);letter-spacing:2px;font-size:16px}
 .gallery{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:10px;overflow-x:auto;padding:2px 0 8px;scroll-snap-type:x mandatory}
 .gallery img{width:100%;height:230px;object-fit:cover;border-radius:12px;scroll-snap-align:start;background:var(--alt)}
+/* centered club cards */
+.home-head{text-align:center;margin:8px auto 26px;max-width:60ch}
+.home-head h2{font-size:clamp(26px,4vw,34px)}
+.home-head p{color:var(--muted);margin:6px auto 0}
+.clubgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1040px;margin:0 auto}
+.ccard{border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;background:#fff;box-shadow:var(--shadow);transition:.15s}
+.ccard:hover{transform:translateY(-3px)}
+.ccimg{position:relative;background:var(--alt)}
+.ccimg img{width:100%;height:170px;object-fit:cover;display:block}
+.cbadge{position:absolute;top:12px;left:12px;background:var(--green);color:#fff;font:600 10px Inter;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+.ccard.wine .cbadge{background:#5e7a3a}
+.ccard .body{padding:18px;display:flex;flex-direction:column;flex:1}
+.ccard h3{font-size:19px;margin:0 0 4px}
+.cprice{font:600 24px Fraunces;margin-bottom:8px}
+.cprice span{font:500 13px Inter;color:var(--muted)}
+.cdesc{color:#4a545e;font-size:13px;line-height:1.5;margin:0 0 12px}
+.cavail{font-size:11px;font-weight:600;color:var(--green);background:#eaf2ec;border-radius:99px;padding:4px 10px;align-self:flex-start;margin-bottom:14px}
+.ccard.wine .cavail{color:#5e7a3a;background:#eef3e6}
+.cbtn{margin-top:auto;width:100%}
+.homesec{max-width:780px;margin:48px auto 0}
+.homesec h2{font-size:24px;text-align:center;margin-bottom:14px}
+@media(max-width:900px){.clubgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.clubgrid{grid-template-columns:1fr}}
 /* layout */
 .layout{display:grid;grid-template-columns:1fr 400px;gap:38px;align-items:start;padding:34px 0 90px}
 .sec{margin-bottom:34px}
@@ -246,61 +269,51 @@ function renderNav(){
 
 /* ====== VIEW: HOME (Table22-style) ====== */
 function viewHome(){
-  if(!homeSelected && S.clubs[0]) homeSelected = S.clubs[0].slug;
-  const el=$(`<div class="wrap"></div>`);
+  const el=$(`<div class="wrap" style="padding-top:14px"></div>`);
   el.append($(`<div class="rating"><span class="stars">★★★★☆</span> 4.4 · based on 32 reviews</div>`));
-  const gal=$(`<div class="gallery"></div>`);
-  GALLERY.forEach(src=>{const im=$(`<img loading="lazy" alt="Greys Fine Cheeses">`);im.src=src;gal.append(im);});
-  el.append(gal);
+  el.append($(`<div class="home-head"><h2>Choose your membership</h2><p>Every membership is month-to-month — pause, skip, or cancel anytime.</p></div>`));
 
-  const layout=$(`<div class="layout"></div>`);
-  const left=$(`<div></div>`);
-  left.append($(`<div class="sec"><h2>Overview</h2><div class="overview-box">At Greys Fine Cheeses, the cut to order counter and wine bar come together in a monthly club built for true cheese lovers. Expect rotating selections chosen by the mongers, shaped by the season, and only possible from the team sourcing wheels firsthand. Join in.</div></div>`));
-  const sup=$(`<div class="sec"><h2>Who you're supporting</h2><div class="supporting"></div></div>`);
-  const supimg=$(`<img alt="Greys Fine Cheeses owners" loading="lazy">`); supimg.src=OWNER_IMG; supimg.onerror=()=>supimg.remove();
+  const grid=$(`<div class="clubgrid"></div>`);
+  S.clubs.forEach(c=>{
+    const card=$(`<div class="ccard ${c.slug==='off-the-vine'?'wine':''}">
+      <div class="ccimg">${c.badge?`<span class="cbadge">${esc(c.badge)}</span>`:''}<img loading="lazy" alt="${esc(c.name)}"></div>
+      <div class="body">
+        <h3>${esc(c.name)}</h3>
+        <div class="cprice">${money(c.monthly_price_cents)}<span>/mo</span></div>
+        <p class="cdesc">${esc(c.description||'')}</p>
+        ${c.availability?`<div class="cavail">${esc(c.availability)}</div>`:''}
+        <button class="btn btn-primary cbtn">Become a member</button>
+      </div></div>`);
+    const im=card.querySelector('img'); if(c.image_url){im.src=c.image_url;} im.onerror=()=>{const w=im.closest('.ccimg'); if(w) w.style.display='none';};
+    card.querySelector('.cbtn').addEventListener('click',()=>go('/join/'+c.slug));
+    grid.append(card);
+  });
+  el.append(grid);
+
+  el.append($(`<div class="homesec"><h2>Overview</h2><div class="overview-box">At Greys Fine Cheeses, the cut to order counter and wine bar come together in a monthly club built for true cheese lovers. Expect rotating selections chosen by the mongers, shaped by the season, and only possible from the team sourcing wheels firsthand. Join in.</div></div>`));
+
+  const sup=$(`<div class="homesec"><h2>Who you're supporting</h2><div class="supporting"></div></div>`);
+  const supimg=$(`<img alt="Greys Fine Cheeses" loading="lazy">`); supimg.src=OWNER_IMG; supimg.onerror=()=>supimg.remove();
   sup.querySelector('.supporting').append(supimg);
   sup.querySelector('.supporting').append($(`<div class="txt">A family-owned specialty cheese shop and wine bar with locations in Memphis, Nashville, and Franklin — connecting people to remarkable, small-batch cheeses made the right way.</div>`));
-  left.append(sup);
-  left.append($(`<div class="sec"><h2>How it works</h2><div class="steps">
+  el.append(sup);
+
+  el.append($(`<div class="homesec"><h2>How it works</h2><div class="steps">
     <div class="step"><div class="n">1</div><div><h4>We select this month's picks</h4><p>Each month, we choose selections we're excited about — seasonal styles, special producers, and cheeses with a story to tell. Tasting notes included so you know what you're getting and why it's special.</p></div></div>
     <div class="step"><div class="n">2</div><div><h4>We let you know when it's ready</h4><p>You'll get an email each month with the date and details — same schedule each month so you can plan around it.</p></div></div>
     <div class="step"><div class="n">3</div><div><h4>Build your board and enjoy</h4><p>Slice, pair, and enjoy at home — whether it's a quiet night in or something to share. Great on its own, better with company.</p></div></div>
   </div></div>`));
-  left.append($(`<div class="sec"><h2>Member perks</h2><ul class="perks">
+  el.append($(`<div class="homesec"><h2>Member perks</h2><ul class="perks">
     <li>Monthly, monger-selected cheeses and optional wine pairings</li>
     <li>First access to limited wheels and small-production bottles</li>
     <li>Member discounts on the cheese counter and in-store dining</li>
   </ul></div>`));
   const nc=nextCohort();
-  left.append($(`<div class="sec"><h2>What you need to know</h2><div class="know">
+  el.append($(`<div class="homesec" style="margin-bottom:70px"><h2>What you need to know</h2><div class="know" style="justify-content:center">
     <div><b>Pickup & delivery</b><span>Memphis, Nashville & Franklin</span></div>
     <div><b>Next order</b><span>${nc?fmtMonth(nc.month):'—'}</span></div>
     <div><b>Flexibility</b><span>Pause or cancel any time</span></div>
   </div></div>`));
-  layout.append(left);
-
-  // right: membership selector
-  const right=$(`<div></div>`);
-  const card=$(`<div class="membership"><h3>Your membership</h3><div id="plans"></div></div>`);
-  const plans=card.querySelector('#plans');
-  S.clubs.forEach(c=>{
-    const sel=homeSelected===c.slug;
-    const p=$(`<div class="plan ${sel?'sel':''} ${c.slug==='off-the-vine'?'wine':''}">
-      ${c.badge?`<div class="badge">${esc(c.badge)}</div>`:''}
-      <div class="ph"><b>${esc(c.name)}</b><span class="price">${money(c.monthly_price_cents)}</span></div>
-      <div class="desc">${esc(c.description||'')}</div>
-    </div>`);
-    p.addEventListener('click',()=>{homeSelected=c.slug; el.replaceWith(viewHome());});
-    plans.append(p);
-  });
-  const selClub=S.clubs.find(c=>c.slug===homeSelected)||S.clubs[0];
-  const cta=$(`<button class="btn btn-primary cta-btn">Become a member · ${selClub?money(selClub.monthly_price_cents)+' / month':''}</button>`);
-  cta.addEventListener('click',()=>go('/join/'+homeSelected));
-  card.append(cta);
-  card.append($(`<div class="subnote">Gift options available at checkout · Pause or cancel anytime</div>`));
-  right.append(card);
-  layout.append(right);
-  el.append(layout);
   return el;
 }
 function fmtMonth(d){return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});}
