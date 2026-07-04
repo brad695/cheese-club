@@ -220,7 +220,10 @@ async function loadCatalog(){
   ]);
   S.clubs=c.data||[]; S.fulfillment=f.data||[]; S.cohorts=co.data||[];
 }
-function nextCohort(){ const today=new Date().toISOString().slice(0,10); return S.cohorts.find(c=>c.order_deadline>=today)||S.cohorts[S.cohorts.length-1]; }
+// The cohort currently open for ordering: status 'open' AND cutoff not passed.
+// Returns null once the hard cutoff (7 days before the 2nd-Wednesday pickup)
+// has passed and no future cohort is open yet — the server enforces this too.
+function nextCohort(){ const today=new Date().toISOString().slice(0,10); return S.cohorts.find(c=>c.status==='open' && c.order_deadline>=today)||null; }
 async function refreshMember(){
   if(!S.session){S.member=null;return;}
   const {data}=await sb.from('cc_members').select('*').eq('id',S.session.user.id).maybeSingle();
@@ -475,6 +478,7 @@ async function completeCheckout(club, btn){
     if(!A.name||!A.street||!A.city||!A.state||!A.zip){toast('Please enter your full '+(type==='shipping'?'shipping':'delivery')+' address.',true);return;}
   }
   if(type==='shipping' && !(S.draft.rate&&S.draft.rate.amount_cents)){toast('Please choose a shipping rate.',true);return;}
+  if(!nextCohort()){toast('Ordering for this month has closed (cutoff is 7 days before pickup). Please check back when the next club opens.',true);return;}
   if(btn){btn.disabled=true;btn.textContent='Starting…';}
   const fee = type==='delivery'?(ff.surcharge_cents||0):(type==='shipping'?S.draft.rate.amount_cents:0);
   if(STRIPE_ENABLED){
@@ -595,11 +599,25 @@ function changeFulfillmentBtn(s){
   });
   return b;
 }
-async function skipNext(s){const nc=nextCohort();if(!nc)return;const {data:o}=await sb.from('cc_orders').select('*').eq('subscription_id',s.id).eq('cohort_id',nc.id).maybeSingle();if(o){await sb.from('cc_orders').update({status:'skipped'}).eq('id',o.id);}else{await sb.from('cc_orders').insert({subscription_id:s.id,cohort_id:nc.id,amount_cents:0,status:'skipped'});}toast('Next box skipped.');render();}
+async function skipNext(s){const nc=nextCohort();if(!nc){toast('This month is past its cutoff — nothing to skip.',true);return;}const {data:o}=await sb.from('cc_orders').select('*').eq('subscription_id',s.id).eq('cohort_id',nc.id).maybeSingle();try{if(o){await sb.from('cc_orders').update({status:'skipped'}).eq('id',o.id);}else{await sb.from('cc_orders').insert({subscription_id:s.id,cohort_id:nc.id,amount_cents:0,status:'skipped'});}toast('Next box skipped.');render();}catch(e){toast(e.message||'Could not skip.',true);}}
 async function pauseSub(s){const d=new Date();d.setMonth(d.getMonth()+2);await sb.from('cc_subscriptions').update({status:'paused',paused_until:d.toISOString().slice(0,10)}).eq('id',s.id);toast('Membership paused.');render();}
 async function resumeSub(s){await sb.from('cc_subscriptions').update({status:'active',paused_until:null}).eq('id',s.id);toast('Membership resumed.');render();}
 async function reactivateSub(s){await sb.from('cc_subscriptions').update({status:'active',cancelled_at:null}).eq('id',s.id);toast('Membership reactivated.');render();}
 function cancelSub(s){const m=document.getElementById('modal');m.innerHTML=`<h3>Cancel membership?</h3><p class="muted">You'll keep access through any order already scheduled. You can reactivate anytime.</p>`;const b=$(`<button class="btn btn-danger" style="width:100%">Yes, cancel</button>`);b.addEventListener('click',async()=>{await sb.from('cc_subscriptions').update({status:'cancelled',cancelled_at:new Date().toISOString()}).eq('id',s.id);closeModal();toast('Membership cancelled.');render();});m.append(b);m.append($(`<button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Keep my membership</button>`));document.getElementById('modalBg').classList.add('show');}
+
+/* ====== ADMIN EDGE-FUNCTION HELPERS ====== */
+// Calls a Cheese Club admin edge function with the operator's session JWT.
+async function ccFn(slug, payload){
+  const {data:{session}}=await sb.auth.getSession();
+  const res=await fetch(SUPABASE_URL+'/functions/v1/'+slug,{method:'POST',
+    headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+(session?session.access_token:SUPABASE_KEY)},
+    body:JSON.stringify(payload||{})});
+  return res;
+}
+async function ccFnJson(slug, payload){ const r=await ccFn(slug,payload); let j={}; try{j=await r.json();}catch(e){} if(!r.ok||j.error) throw new Error(j.error||('Request failed ('+r.status+')')); return j; }
+// Current open cohort's month (yyyy-mm-dd), or this month if none is open.
+function adminDefaultMonth(){ const c=S.cohorts.find(x=>x.status==='open')||S.cohorts[S.cohorts.length-1]; if(c) return c.month; const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01'; }
+function ymToDate(v){ return /^\d{4}-\d{2}$/.test(v)? v+'-01' : v; }
 
 /* ====== VIEW: ADMIN ====== */
 async function viewAdmin(){
@@ -614,7 +632,7 @@ async function viewAdmin(){
   const active=subs.filter(s=>s.status==='active');
   const mrr=active.reduce((t,s)=>t+s.cc_clubs.monthly_price_cents+(s.cc_fulfillment_options?s.cc_fulfillment_options.surcharge_cents:0),0);
   el.append($(`<div class="metrics"><div class="metric"><div class="k">Active subscriptions</div><div class="v">${active.length}</div></div><div class="metric"><div class="k">Members</div><div class="v">${members.length}</div></div><div class="metric"><div class="k">Est. monthly revenue</div><div class="v">${money(mrr)}</div></div><div class="metric"><div class="k">Paused / cancelled</div><div class="v">${subs.filter(s=>s.status!=='active').length}</div></div></div>`));
-  const tabs=$(`<div class="tabs"><button class="on" data-t="ov">Clubs</button><button data-t="subs">Subscriptions</button><button data-t="members">Members</button><button data-t="cohorts">Cohorts</button><button data-t="orders">Orders</button></div>`);
+  const tabs=$(`<div class="tabs"><button class="on" data-t="ov">Clubs</button><button data-t="subs">Subscriptions</button><button data-t="members">Members</button><button data-t="roster">Roster</button><button data-t="revenue">Revenue</button><button data-t="notify">Notify</button><button data-t="cohorts">Cohorts</button><button data-t="orders">Orders</button></div>`);
   const body=$(`<div></div>`);el.append(tabs);el.append(body);
   const drawOv=()=>{body.innerHTML='';const g=$(`<div class="clubs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px"></div>`);
     S.clubs.forEach(c=>{const n=active.filter(s=>s.club_id===c.id).length;g.append($(`<div class="card"><div style="height:6px;width:48px;border-radius:9px;background:${esc(c.accent)};margin-bottom:12px"></div><h3 style="font-size:19px">${esc(c.name)}</h3><div style="font:600 26px Fraunces">${money(c.monthly_price_cents)}<span style="font:500 14px Inter;color:var(--muted)">/mo</span></div><div class="muted" style="font-size:13px;margin-top:4px">${n} active member${n===1?'':'s'}</div></div>`));});
@@ -638,7 +656,103 @@ async function viewAdmin(){
       tb.append(tr);
     });
     if(!orders.length)tb.append($(`<tr><td colspan="6"><div class="empty">No orders yet.</div></td></tr>`));body.append(t);};
-  tabs.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');({ov:drawOv,subs:drawSubs,members:drawMembers,cohorts:drawCohorts,orders:drawOrders}[btn.dataset.t])();}));
+  // --- Roster (active members for a month) + CSV export ---
+  const drawRoster=()=>{
+    body.innerHTML='';
+    const ctl=$(`<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px"><label class="fld" style="margin:0"><span>Month</span><input id="rmonth" type="month" value="${adminDefaultMonth().slice(0,7)}"></label><button id="rload" class="btn btn-ghost btn-sm">Load</button><button id="rcsv" class="btn btn-primary btn-sm">Export CSV</button></div>`);
+    const out=$(`<div></div>`); body.append(ctl); body.append(out);
+    const monthVal=()=>ymToDate(ctl.querySelector('#rmonth').value)||adminDefaultMonth();
+    const load=async()=>{
+      out.innerHTML=''; out.append($(`<div class="empty">Loading…</div>`));
+      try{
+        const j=await ccFnJson('cc-admin',{action:'roster',month:monthVal()});
+        out.innerHTML='';
+        out.append($(`<div class="muted" style="margin:2px 0 10px">${j.count} active membership${j.count===1?'':'s'} for ${fmtMonth(monthVal())}.</div>`));
+        const t=$(`<div class="table-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Tier</th><th>Fulfillment</th><th>Subscription</th><th>Order</th></tr></thead><tbody></tbody></table></div>`);
+        const tb=t.querySelector('tbody');
+        (j.roster||[]).forEach(r=>tb.append($(`<tr><td><b>${esc(r.full_name||'—')}</b></td><td>${esc(r.email)}</td><td>${esc(r.club_name)}</td><td>${esc(r.fulfillment_label||'—')}</td><td><span class="pill ${r.subscription_status}">${r.subscription_status}</span></td><td>${r.order_status?`<span class="pill ${r.order_status}">${r.order_status}</span>`:'—'}</td></tr>`)));
+        if(!(j.roster||[]).length)tb.append($(`<tr><td colspan="6"><div class="empty">No active members this month.</div></td></tr>`));
+        out.append(t);
+      }catch(e){out.innerHTML='';out.append($(`<div class="empty">${esc(e.message)}</div>`));}
+    };
+    ctl.querySelector('#rload').addEventListener('click',load);
+    ctl.querySelector('#rcsv').addEventListener('click',async(ev)=>{
+      const b=ev.target;b.disabled=true;b.textContent='Exporting…';
+      try{
+        const m=monthVal(); const r=await ccFn('cc-admin',{action:'roster_csv',month:m});
+        if(!r.ok)throw new Error('Export failed ('+r.status+')');
+        const blob=await r.blob(); const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');a.href=url;a.download='cheese-club-roster-'+m+'.csv';document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);
+        toast('Roster exported.');
+      }catch(e){toast(e.message,true);}finally{b.disabled=false;b.textContent='Export CSV';}
+    });
+    load();
+  };
+  // --- Realized revenue per billing month ---
+  const drawRevenue=async()=>{
+    body.innerHTML='';
+    body.append($(`<div class="muted" style="margin:2px 0 14px">Realized revenue per billing month — paid orders, net of refunds.</div>`));
+    const wrap=$(`<div class="empty">Loading…</div>`); body.append(wrap);
+    try{
+      const j=await ccFnJson('cc-admin',{action:'revenue'}); const rows=j.revenue||[];
+      const holder=$(`<div></div>`); wrap.replaceWith(holder);
+      if(!rows.length){holder.append($(`<div class="empty">No revenue yet.</div>`));return;}
+      const net=rows.reduce((t,r)=>t+(r.net_revenue_cents||0),0);
+      holder.append($(`<div class="metrics"><div class="metric"><div class="k">Net revenue (all months)</div><div class="v">${money(net)}</div></div></div>`));
+      const t=$(`<div class="table-scroll"><table><thead><tr><th>Month</th><th>Status</th><th>Billable</th><th>Paid</th><th>Failed</th><th>Refunded</th><th>Gross</th><th>Refunds</th><th>Net</th></tr></thead><tbody></tbody></table></div>`);
+      const tb=t.querySelector('tbody');
+      rows.forEach(r=>tb.append($(`<tr><td><b>${fmtMonth(r.month)}</b></td><td><span class="pill ${r.cohort_status==='open'?'active':'scheduled'}">${esc(r.cohort_status)}</span></td><td>${r.billable_orders}</td><td>${r.paid_orders}</td><td>${r.failed_orders}</td><td>${r.refunded_orders}</td><td>${money2(r.gross_paid_cents)}</td><td>${money2(r.refunded_cents)}</td><td><b>${money2(r.net_revenue_cents)}</b></td></tr>`)));
+      holder.append(t);
+    }catch(e){wrap.textContent=e.message;}
+  };
+  // --- Notify: broadcast (preview→confirm) + pickup reminders ---
+  const drawNotify=()=>{
+    body.innerHTML='';
+    const bc=$(`<div class="card" style="margin-bottom:18px"><h3 style="font-size:18px;margin-top:0">Broadcast to active members</h3><p class="muted" style="font-size:13px;margin-top:-4px">Emails the active roster for the chosen month — for changes, updates or substitutions. You preview recipients before anything sends.</p></div>`);
+    const month=$(`<label class="fld"><span>Audience month</span><input id="bmonth" type="month" value="${adminDefaultMonth().slice(0,7)}"></label>`);
+    const subj=$(`<label class="fld"><span>Subject</span><input id="bsubj" placeholder="Substitution notice for this month's box"></label>`);
+    const bodyf=$(`<label class="fld"><span>Message (HTML allowed)</span><textarea id="bbody" rows="6" style="width:100%;font:inherit;padding:10px;border:1.5px solid var(--line);border-radius:10px" placeholder="Hi there — a quick update about your upcoming box…"></textarea></label>`);
+    const previewBtn=$(`<button class="btn btn-ghost btn-sm">Preview recipients</button>`);
+    const pv=$(`<div style="margin-top:12px"></div>`);
+    bc.append(month,subj,bodyf,previewBtn,pv); body.append(bc);
+    previewBtn.addEventListener('click',async()=>{
+      previewBtn.disabled=true;pv.innerHTML='';pv.append($(`<div class="muted">Loading recipients…</div>`));
+      try{
+        const m=ymToDate(month.querySelector('#bmonth').value)||adminDefaultMonth();
+        const j=await ccFnJson('cc-broadcast',{month:m});
+        pv.innerHTML='';
+        const list=(j.recipients||[]).map(r=>esc(r.name||r.email)+' &lt;'+esc(r.email)+'&gt;').join('<br>');
+        pv.append($(`<div class="note">${j.recipient_count} recipient${j.recipient_count===1?'':'s'}${j.testMode?' · <b>TEST MODE</b> (all mail redirected)':''}<div class="muted" style="font-size:12px;margin-top:6px;max-height:150px;overflow:auto">${list||'No active members.'}</div></div>`));
+        if(j.recipient_count>0){
+          const send=$(`<button class="btn btn-primary btn-sm" style="margin-top:10px">Send to ${j.recipient_count} member${j.recipient_count===1?'':'s'}</button>`);
+          send.addEventListener('click',async()=>{
+            const subject=subj.querySelector('#bsubj').value.trim(); const html=bodyf.querySelector('#bbody').value.trim();
+            if(!subject||!html){toast('Add a subject and message first.',true);return;}
+            if(!confirm('Send this email to '+j.recipient_count+' member(s)?'))return;
+            send.disabled=true;send.textContent='Sending…';
+            try{ const res=await ccFnJson('cc-broadcast',{month:m,subject,html,send:true}); toast('Sent to '+res.sent+' member(s)'+(res.failed?' · '+res.failed+' failed':'')+(res.testMode?' (test mode)':'')+'.'); }
+            catch(e){toast(e.message,true);send.disabled=false;send.textContent='Send';}
+          });
+          pv.append(send);
+        }
+      }catch(e){pv.innerHTML='';pv.append($(`<div class="empty">${esc(e.message)}</div>`));}
+      finally{previewBtn.disabled=false;}
+    });
+    const rmonth=adminDefaultMonth();
+    const rc=$(`<div class="card"><h3 style="font-size:18px;margin-top:0">Pickup reminders</h3><p class="muted" style="font-size:13px;margin-top:-4px">Reminders auto-send 24h before the 2nd-Wednesday pickup. You can also send this month's now — already-reminded orders are skipped.</p></div>`);
+    const rstat=$(`<div class="muted" style="margin-bottom:10px">Checking…</div>`);
+    const rbtn=$(`<button class="btn btn-primary btn-sm">Send pickup reminders now</button>`);
+    rc.append(rstat,rbtn); body.append(rc);
+    (async()=>{ try{ const j=await ccFnJson('cc-pickup-reminder',{month:rmonth,dry:true}); rstat.innerHTML=`Pickup for <b>${fmtMonth(rmonth)}</b> is <b>${j.pickup}</b>. <b>${j.eligible}</b> reminder${j.eligible===1?'':'s'} pending${j.testMode?' · <b>TEST MODE</b>':''}.`; }catch(e){ rstat.textContent=e.message; } })();
+    rbtn.addEventListener('click',async()=>{
+      if(!confirm('Send pickup reminders for '+fmtMonth(rmonth)+' now?'))return;
+      rbtn.disabled=true;rbtn.textContent='Sending…';
+      try{ const j=await ccFnJson('cc-pickup-reminder',{month:rmonth}); toast('Reminders sent: '+j.sent+(j.failed?' · '+j.failed+' failed':'')+(j.testMode?' (test mode)':'')+'.'); }
+      catch(e){toast(e.message,true);}
+      finally{rbtn.disabled=false;rbtn.textContent='Send pickup reminders now';}
+    });
+  };
+  tabs.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');({ov:drawOv,subs:drawSubs,members:drawMembers,roster:drawRoster,revenue:drawRevenue,notify:drawNotify,cohorts:drawCohorts,orders:drawOrders}[btn.dataset.t])();}));
   drawOv(); return el;
 }
 async function createLabel(o, btn, origin){
