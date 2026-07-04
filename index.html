@@ -618,6 +618,57 @@ async function ccFnJson(slug, payload){ const r=await ccFn(slug,payload); let j=
 // Current open cohort's month (yyyy-mm-dd), or this month if none is open.
 function adminDefaultMonth(){ const c=S.cohorts.find(x=>x.status==='open')||S.cohorts[S.cohorts.length-1]; if(c) return c.month; const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01'; }
 function ymToDate(v){ return /^\d{4}-\d{2}$/.test(v)? v+'-01' : v; }
+// 2nd Wednesday (pickup day) of a 'YYYY-MM' or 'YYYY-MM-01' month.
+function ccSecondWednesday(ym){ const [y,m]=ym.split('-').map(Number); const first=new Date(Date.UTC(y,m-1,1)); const dow=first.getUTCDay(); const fw=1+((3-dow+7)%7); return new Date(Date.UTC(y,m-1,fw+7)); }
+// Opens a clean, print-optimized roster sheet for the given month (yyyy-mm[-01]),
+// grouped by pickup/fulfillment location with a check-off column for pickup day.
+async function printRoster(month){
+  let j; try{ j=await ccFnJson('cc-admin',{action:'roster',month}); }catch(e){ toast(e.message,true); return; }
+  const rows=j.roster||[];
+  const pickup=ccSecondWednesday(month);
+  const pickupLabel=pickup.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'});
+  const monthLabel=new Date(ymToDate(month)+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const e2=s=>(s==null?'':String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const groups={}; rows.forEach(r=>{const k=r.fulfillment_label||'Unassigned';(groups[k]=groups[k]||[]).push(r);});
+  let bodyHtml='';
+  Object.keys(groups).sort().forEach(k=>{
+    const list=groups[k].sort((a,b)=>((a.full_name||a.email||'').localeCompare(b.full_name||b.email||'')));
+    bodyHtml+=`<h2>${e2(k)} <span class="cnt">· ${list.length}</span></h2><table><thead><tr><th class="chk">✓</th><th>Member</th><th>Tier</th><th>Order</th><th class="note">Notes</th></tr></thead><tbody>`;
+    list.forEach(r=>{bodyHtml+=`<tr><td class="chk"></td><td><b>${e2(r.full_name||'—')}</b><div class="sub">${e2(r.email)}${r.phone?' · '+e2(r.phone):''}</div></td><td>${e2(r.club_name)}</td><td>${e2(r.order_status||'—')}</td><td class="note"></td></tr>`;});
+    bodyHtml+='</tbody></table>';
+  });
+  if(!rows.length) bodyHtml='<p style="margin-top:24px">No active members for this month.</p>';
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Cheese Club Roster — ${monthLabel}</title><style>
+    *{box-sizing:border-box}
+    body{font:14px/1.4 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111;margin:28px}
+    .toolbar{margin-bottom:14px}
+    .toolbar button{font:14px sans-serif;padding:8px 16px;background:#1f5137;color:#fff;border:none;border-radius:6px;cursor:pointer}
+    header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1f5137;padding-bottom:10px;margin-bottom:8px}
+    h1{font:600 22px Georgia,serif;color:#1f5137;margin:0}
+    .meta{text-align:right;font-size:13px;color:#333}
+    .meta b{color:#111}
+    h2{font:600 15px Georgia,serif;margin:20px 0 6px;color:#163b28;border-left:4px solid #c99a3f;padding-left:8px}
+    h2 .cnt{color:#888;font-weight:400;font-size:13px}
+    table{width:100%;border-collapse:collapse;margin-bottom:6px}
+    th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}
+    th{background:#f2f1ee;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+    td.chk,th.chk{width:30px;text-align:center}
+    td.chk{height:28px}
+    th.note,td.note{width:150px}
+    .sub{font-size:11px;color:#666}
+    tbody tr{page-break-inside:avoid}
+    footer{margin-top:18px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:8px}
+    @media print{body{margin:12mm}.toolbar{display:none}}
+  </style></head><body>
+    <div class="toolbar"><button onclick="window.print()">Print / Save as PDF</button></div>
+    <header><h1>Greys Fine Cheeses — Cheese Club</h1><div class="meta"><div><b>${monthLabel}</b> pickup roster</div><div>Pickup: <b>${pickupLabel}</b></div><div>${rows.length} active membership${rows.length===1?'':'s'}</div></div></header>
+    ${bodyHtml}
+    <footer>Generated ${new Date().toLocaleString('en-US')} · Greys Fine Cheeses Cheese Club</footer>
+  </body></html>`;
+  const w=window.open('','_blank');
+  if(!w){toast('Allow pop-ups to open the printable roster.',true);return;}
+  w.document.write(html); w.document.close(); w.focus();
+}
 
 /* ====== VIEW: ADMIN ====== */
 async function viewAdmin(){
@@ -659,7 +710,7 @@ async function viewAdmin(){
   // --- Roster (active members for a month) + CSV export ---
   const drawRoster=()=>{
     body.innerHTML='';
-    const ctl=$(`<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px"><label class="fld" style="margin:0"><span>Month</span><input id="rmonth" type="month" value="${adminDefaultMonth().slice(0,7)}"></label><button id="rload" class="btn btn-ghost btn-sm">Load</button><button id="rcsv" class="btn btn-primary btn-sm">Export CSV</button></div>`);
+    const ctl=$(`<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px"><label class="fld" style="margin:0"><span>Month</span><input id="rmonth" type="month" value="${adminDefaultMonth().slice(0,7)}"></label><button id="rload" class="btn btn-ghost btn-sm">Load</button><button id="rprint" class="btn btn-ghost btn-sm">🖨 Print</button><button id="rcsv" class="btn btn-primary btn-sm">Export CSV</button></div>`);
     const out=$(`<div></div>`); body.append(ctl); body.append(out);
     const monthVal=()=>ymToDate(ctl.querySelector('#rmonth').value)||adminDefaultMonth();
     const load=async()=>{
@@ -676,6 +727,7 @@ async function viewAdmin(){
       }catch(e){out.innerHTML='';out.append($(`<div class="empty">${esc(e.message)}</div>`));}
     };
     ctl.querySelector('#rload').addEventListener('click',load);
+    ctl.querySelector('#rprint').addEventListener('click',()=>printRoster(monthVal()));
     ctl.querySelector('#rcsv').addEventListener('click',async(ev)=>{
       const b=ev.target;b.disabled=true;b.textContent='Exporting…';
       try{
