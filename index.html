@@ -669,48 +669,63 @@ async function printRoster(month){
   if(!w){toast('Allow pop-ups to open the printable roster.',true);return;}
   w.document.write(html); w.document.close(); w.focus();
 }
-// Admin: edit a club's details. Writes go through the cc_clubs_admin_write RLS
+// Admin: add or edit a club. Writes go through the cc_clubs_admin_write RLS
 // policy (cc_is_admin()), so this uses the operator's own session.
 function editClub(c,onSaved){
+  const isNew=!c.id;
   const m=document.getElementById('modal');
   const ta='width:100%;font:inherit;padding:10px;border:1.5px solid var(--line);border-radius:10px';
   const row=(label,inner)=>`<label class="fld"><span>${label}</span>${inner}</label>`;
-  m.innerHTML=`<h3>Edit club</h3><p class="muted" style="font-size:13px;margin-top:-6px">${esc(c.slug||'')}</p>`;
-  const wrap=$(`<div style="max-height:60vh;overflow:auto;padding-right:4px"></div>`);
+  const slugify=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  m.innerHTML=`<h3>${isNew?'Add a club':'Edit club'}</h3>`+(isNew?'':`<p class="muted" style="font-size:13px;margin-top:-6px">${esc(c.slug||'')}</p>`);
+  const wrap=$(`<div style="max-height:62vh;overflow:auto;padding-right:4px"></div>`);
   wrap.innerHTML=
     row('Name',`<input id="ec_name" value="${esc(c.name||'')}">`)+
+    (isNew?row('Slug (URL id)',`<input id="ec_slug" placeholder="auto-generated from name">`):'')+
     row('Price (USD / month)',`<input id="ec_price" type="number" step="0.01" min="0" value="${(c.monthly_price_cents||0)/100}">`)+
     row('Tagline',`<input id="ec_tag" value="${esc(c.tagline||'')}">`)+
     row('Badge',`<input id="ec_badge" value="${esc(c.badge||'')}">`)+
     row('Availability note',`<input id="ec_avail" value="${esc(c.availability||'')}">`)+
+    row('Image URL',`<input id="ec_img" value="${esc(c.image_url||'')}" placeholder="https://…">`)+
+    row('Accent color',`<input id="ec_accent" type="color" value="${esc(c.accent||'#1f5137')}" style="width:56px;height:38px;padding:2px;border:1.5px solid var(--line);border-radius:8px">`)+
     row('Sort order',`<input id="ec_sort" type="number" step="1" value="${c.sort_order||0}">`)+
     row('Description',`<textarea id="ec_desc" rows="3" style="${ta}">${esc(c.description||'')}</textarea>`)+
     row(`What's inside`,`<textarea id="ec_inside" rows="3" style="${ta}">${esc(c.whats_inside||'')}</textarea>`)+
     `<label class="opt" style="margin-top:6px"><input id="ec_active" type="checkbox" ${c.active?'checked':''}><div class="meta"><b>Active</b><small>Visible on the storefront</small></div></label>`+
     `<label class="opt"><input id="ec_pickup" type="checkbox" ${c.pickup_only?'checked':''}><div class="meta"><b>Pickup only</b><small>No delivery or shipping</small></div></label>`;
   m.append(wrap);
-  const save=$(`<button class="btn btn-primary" style="width:100%;margin-top:12px">Save changes</button>`);
+  const save=$(`<button class="btn btn-primary" style="width:100%;margin-top:12px">${isNew?'Create club':'Save changes'}</button>`);
   save.addEventListener('click',async()=>{
     const price=Math.round(parseFloat(wrap.querySelector('#ec_price').value||'0')*100);
     if(!(price>=0)){toast('Enter a valid price.',true);return;}
+    const name=wrap.querySelector('#ec_name').value.trim();
+    if(!name){toast('Name is required.',true);return;}
     const patch={
-      name:wrap.querySelector('#ec_name').value.trim(),
+      name,
       monthly_price_cents:price,
       tagline:wrap.querySelector('#ec_tag').value.trim()||null,
       badge:wrap.querySelector('#ec_badge').value.trim()||null,
       availability:wrap.querySelector('#ec_avail').value.trim()||null,
+      image_url:wrap.querySelector('#ec_img').value.trim()||null,
+      accent:wrap.querySelector('#ec_accent').value,
       sort_order:parseInt(wrap.querySelector('#ec_sort').value,10)||0,
       description:wrap.querySelector('#ec_desc').value.trim()||null,
       whats_inside:wrap.querySelector('#ec_inside').value.trim()||null,
       active:wrap.querySelector('#ec_active').checked,
       pickup_only:wrap.querySelector('#ec_pickup').checked
     };
-    if(!patch.name){toast('Name is required.',true);return;}
     save.disabled=true;save.textContent='Saving…';
-    const {error}=await sb.from('cc_clubs').update(patch).eq('id',c.id);
-    if(error){toast(error.message,true);save.disabled=false;save.textContent='Save changes';return;}
+    let error;
+    if(isNew){
+      patch.slug=(wrap.querySelector('#ec_slug').value.trim()||slugify(name));
+      if(!patch.slug){toast('Could not derive a slug — enter one.',true);save.disabled=false;save.textContent='Create club';return;}
+      ({error}=await sb.from('cc_clubs').insert(patch));
+    }else{
+      ({error}=await sb.from('cc_clubs').update(patch).eq('id',c.id));
+    }
+    if(error){toast(error.message,true);save.disabled=false;save.textContent=isNew?'Create club':'Save changes';return;}
     const {data}=await sb.from('cc_clubs').select('*').eq('active',true).order('sort_order'); if(data)S.clubs=data;
-    closeModal();toast('Club updated.');if(onSaved)onSaved();
+    closeModal();toast(isNew?'Club added.':'Club updated.');if(onSaved)onSaved();
   });
   m.append(save);
   m.append($(`<button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Cancel</button>`));
@@ -733,9 +748,13 @@ async function viewAdmin(){
   const tabs=$(`<div class="tabs"><button class="on" data-t="ov">Clubs</button><button data-t="subs">Subscriptions</button><button data-t="members">Members</button><button data-t="roster">Roster</button><button data-t="revenue">Revenue</button><button data-t="notify">Notify</button><button data-t="cohorts">Cohorts</button><button data-t="orders">Orders</button></div>`);
   const body=$(`<div></div>`);el.append(tabs);el.append(body);
   const drawOv=async()=>{body.innerHTML='';
-    body.append($(`<div class="muted" style="margin-bottom:12px">Edit a club's name, price, description or visibility — changes go live immediately.</div>`));
+    body.append($(`<div class="muted" style="margin-bottom:12px">Add a club, or edit a club's name, price, description or visibility — changes go live immediately.</div>`));
     const {data:allClubs}=await sb.from('cc_clubs').select('*').order('sort_order');
     const clubs=allClubs||S.clubs;
+    const nextSort=clubs.reduce((mx,c)=>Math.max(mx,c.sort_order||0),0)+1;
+    const addBtn=$(`<button class="btn btn-primary btn-sm" style="margin-bottom:14px">+ Add a club</button>`);
+    addBtn.addEventListener('click',()=>editClub({monthly_price_cents:0,active:true,pickup_only:false,accent:'#1f5137',sort_order:nextSort},drawOv));
+    body.append(addBtn);
     const g=$(`<div class="clubs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px"></div>`);
     clubs.forEach(c=>{const n=active.filter(s=>s.club_id===c.id).length;
       const card=$(`<div class="card"><div style="height:6px;width:48px;border-radius:9px;background:${esc(c.accent)};margin-bottom:12px"></div><h3 style="font-size:19px">${esc(c.name)}${c.active?'':' <span class="pill cancelled" style="font-size:10px;vertical-align:middle">hidden</span>'}</h3><div style="font:600 26px Fraunces">${money(c.monthly_price_cents)}<span style="font:500 14px Inter;color:var(--muted)">/mo</span></div><div class="muted" style="font-size:13px;margin-top:4px">${n} active member${n===1?'':'s'}</div></div>`);
