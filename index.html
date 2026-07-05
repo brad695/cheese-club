@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Greys Fine Cheeses — Cheese Club</title>
 <link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -129,6 +128,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)}
 .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:24px;flex-wrap:wrap}
 .tabs button{background:none;border:none;padding:12px 16px;font:600 14px Inter;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .tabs button.on{color:var(--ink);border-bottom-color:var(--green)}
+/* admin sidebar layout — menu on the left */
+.admin-shell{display:grid;grid-template-columns:212px 1fr;gap:28px;align-items:start;margin-top:22px}
+.admin-nav{position:sticky;top:88px;display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-radius:14px;padding:8px;background:var(--paper);box-shadow:var(--shadow)}
+.admin-nav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:none;padding:10px 13px;border-radius:10px;font:600 14px Inter;color:var(--muted);cursor:pointer;transition:.12s}
+.admin-nav button:hover{background:var(--alt);color:var(--ink)}
+.admin-nav button.on{background:#eef4ef;color:var(--green)}
+.admin-nav button .ico{font-size:16px;width:20px;text-align:center;flex:none}
+.admin-main{min-width:0}
+@media(max-width:860px){.admin-shell{grid-template-columns:1fr;gap:16px}.admin-nav{position:static;top:auto;flex-direction:row;flex-wrap:wrap}.admin-nav button{width:auto}}
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px}
 .metric{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px}
 .metric .k{font:600 12px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -200,6 +208,7 @@ const OWNER_IMG = IMG+"c_fill,g_center,w_560,h_430,q_auto,f_auto/v1/partners/gre
 /* ====== STATE ====== */
 const S = { session:null, member:null, clubs:[], fulfillment:[], cohorts:[], draft:null };
 let homeSelected = null;
+let ADMIN_TAB = 'ov';
 const money = c => "$" + (c/100).toFixed(0);
 const money2 = c => "$" + (c/100).toFixed(2);
 const TAX_RATE = 0.0975, PROCESSING_RATE = 0.08;
@@ -746,8 +755,10 @@ async function viewAdmin(){
   const active=subs.filter(s=>s.status==='active');
   const mrr=active.reduce((t,s)=>t+s.cc_clubs.monthly_price_cents+(s.cc_fulfillment_options?s.cc_fulfillment_options.surcharge_cents:0),0);
   el.append($(`<div class="metrics"><div class="metric"><div class="k">Active subscriptions</div><div class="v">${active.length}</div></div><div class="metric"><div class="k">Members</div><div class="v">${members.length}</div></div><div class="metric"><div class="k">Est. monthly revenue</div><div class="v">${money(mrr)}</div></div><div class="metric"><div class="k">Paused / cancelled</div><div class="v">${subs.filter(s=>s.status!=='active').length}</div></div></div>`));
-  const tabs=$(`<div class="tabs"><button class="on" data-t="ov">Clubs</button><button data-t="subs">Subscriptions</button><button data-t="members">Members</button><button data-t="roster">Roster</button><button data-t="revenue">Revenue</button><button data-t="notify">Notify</button><button data-t="cohorts">Cohorts</button><button data-t="orders">Orders</button></div>`);
-  const body=$(`<div></div>`);el.append(tabs);el.append(body);
+  const shell=$(`<div class="admin-shell"></div>`);
+  const nav=$(`<div class="admin-nav"></div>`);
+  const body=$(`<div class="admin-main"></div>`);
+  shell.append(nav);shell.append(body);el.append(shell);
   const drawOv=async()=>{body.innerHTML='';
     body.append($(`<div class="muted" style="margin-bottom:12px">Add a club, or edit a club's name, price, description or visibility — changes go live immediately.</div>`));
     const {data:allClubs}=await sb.from('cc_clubs').select('*').order('sort_order');
@@ -763,13 +774,30 @@ async function viewAdmin(){
       eb.addEventListener('click',()=>editClub(c,drawOv));
       card.append(eb); g.append(card);});
     body.append(g);};
-  const drawSubs=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Member</th><th>Club</th><th>Fulfillment</th><th>Status</th><th>Gift</th><th>Started</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
-    subs.forEach(s=>tb.append($(`<tr><td><b>${esc((s.cc_members&&(s.cc_members.full_name||s.cc_members.email))||'—')}</b><br><small class="muted">${esc((s.cc_members&&s.cc_members.email)||'')}</small></td><td>${esc(s.cc_clubs.name)}</td><td>${esc((s.cc_fulfillment_options&&s.cc_fulfillment_options.label)||'—')}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${s.is_gift?'🎁':''}</td><td>${new Date(s.started_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td></tr>`)));
-    if(!subs.length)tb.append($(`<tr><td colspan="6"><div class="empty">No subscriptions yet.</div></td></tr>`));body.append(t);};
+  const drawSubs=()=>{body.innerHTML='';
+    const ctl=$(`<label class="fld" style="max-width:360px"><span>Search</span><input id="subq" placeholder="Name, email, or club"></label>`);
+    const holder=$(`<div></div>`); body.append(ctl,holder);
+    const paint=()=>{
+      const q=ctl.querySelector('#subq').value.trim().toLowerCase();
+      const list=subs.filter(s=>{ if(!q) return true; const mem=s.cc_members||{}; return [mem.full_name,mem.email,s.cc_clubs&&s.cc_clubs.name].filter(Boolean).join(' ').toLowerCase().includes(q); });
+      holder.innerHTML='';
+      const t=$(`<div class="table-scroll"><table><thead><tr><th>Member</th><th>Club</th><th>Fulfillment</th><th>Status</th><th>Gift</th><th>Started</th><th></th></tr></thead><tbody></tbody></table></div>`);
+      const tb=t.querySelector('tbody');
+      list.forEach(s=>{
+        const tr=$(`<tr><td><b>${esc((s.cc_members&&(s.cc_members.full_name||s.cc_members.email))||'—')}</b><br><small class="muted">${esc((s.cc_members&&s.cc_members.email)||'')}</small></td><td>${esc(s.cc_clubs?s.cc_clubs.name:'—')}</td><td>${esc((s.cc_fulfillment_options&&s.cc_fulfillment_options.label)||'—')}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${s.is_gift?'🎁':''}</td><td>${new Date(s.started_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td><td class="actcell"></td></tr>`);
+        const eb=$(`<button class="btn btn-ghost btn-sm">Edit</button>`);
+        eb.addEventListener('click',()=>editSubscription(s));
+        tr.querySelector('.actcell').append(eb);
+        tb.append(tr);
+      });
+      if(!list.length)tb.append($(`<tr><td colspan="7"><div class="empty">${subs.length?'No subscriptions match your search.':'No subscriptions yet.'}</div></td></tr>`));
+      holder.append(t);
+    };
+    ctl.querySelector('#subq').addEventListener('input',paint);
+    paint();
+  };
   const drawMembers=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Subscriptions</th><th>Role</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
     members.forEach(m=>{const n=subs.filter(s=>s.member_id===m.id).length;tb.append($(`<tr><td><b>${esc(m.full_name||'—')}</b></td><td>${esc(m.email)}</td><td>${esc(m.phone||'—')}</td><td>${n}</td><td>${m.is_admin?'<span class="pill paid">admin</span>':'member'}</td></tr>`));});body.append(t);};
-  const drawCohorts=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Cohort</th><th>Order deadline</th><th>Modify by</th><th>Payout</th><th>Fulfillment day</th><th>Status</th><th>Orders</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');const fmt=d=>new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    S.cohorts.forEach(c=>{const n=orders.filter(o=>o.cohort_id===c.id&&o.status!=='skipped').length;tb.append($(`<tr><td><b>${fmtMonth(c.month)}</b></td><td>${fmt(c.order_deadline)}</td><td>${fmt(c.modification_deadline)}</td><td>${fmt(c.payout_date)}</td><td>${fmt(c.fulfillment_day)}</td><td><span class="pill ${c.status==='open'?'active':'scheduled'}">${c.status}</span></td><td>${n}</td></tr>`));});body.append(t);};
   const drawOrders=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Member</th><th>Club</th><th>Cohort</th><th>Amount</th><th>Status</th><th>Shipping</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
     orders.sort((a,b)=>(((b.cc_cohorts&&b.cc_cohorts.month)||'').localeCompare((a.cc_cohorts&&a.cc_cohorts.month)||''))).forEach(o=>{
       const sub=o.cc_subscriptions||{}; const fft=sub.cc_fulfillment_options&&sub.cc_fulfillment_options.type;
@@ -820,17 +848,40 @@ async function viewAdmin(){
     body.innerHTML='';
     body.append($(`<div class="muted" style="margin:2px 0 14px">Realized revenue per billing month — paid orders, net of refunds.</div>`));
     const wrap=$(`<div class="empty">Loading…</div>`); body.append(wrap);
-    try{
-      const j=await ccFnJson('cc-admin',{action:'revenue'}); const rows=j.revenue||[];
-      const holder=$(`<div></div>`); wrap.replaceWith(holder);
-      if(!rows.length){holder.append($(`<div class="empty">No revenue yet.</div>`));return;}
-      const net=rows.reduce((t,r)=>t+(r.net_revenue_cents||0),0);
-      holder.append($(`<div class="metrics"><div class="metric"><div class="k">Net revenue (all months)</div><div class="v">${money(net)}</div></div></div>`));
+    let rows=[];
+    try{ const j=await ccFnJson('cc-admin',{action:'revenue'}); rows=j.revenue||[]; }
+    catch(e){ wrap.textContent=e.message; return; }
+    wrap.remove();
+    if(!rows.length){ body.append($(`<div class="empty">No revenue yet.</div>`)); return; }
+    const statuses=[...new Set(rows.map(r=>r.cohort_status).filter(Boolean))];
+    const ctl=$(`<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
+      <label class="fld" style="margin:0;flex:1;min-width:200px"><span>Search month</span><input id="revq" placeholder="e.g. July or 2026"></label>
+      <label class="fld" style="margin:0"><span>Status</span><select id="revst"><option value="">All statuses</option>${statuses.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select></label>
+    </div>`);
+    const metricsHolder=$(`<div></div>`);
+    const tableHolder=$(`<div></div>`);
+    body.append(ctl,metricsHolder,tableHolder);
+    const paint=()=>{
+      const q=ctl.querySelector('#revq').value.trim().toLowerCase();
+      const st=ctl.querySelector('#revst').value;
+      const filtered=rows.filter(r=>{
+        const okQ=!q||fmtMonth(r.month).toLowerCase().includes(q)||(r.month||'').includes(q);
+        return okQ && (!st||r.cohort_status===st);
+      });
+      const net=filtered.reduce((t,r)=>t+(r.net_revenue_cents||0),0);
+      const gross=filtered.reduce((t,r)=>t+(r.gross_paid_cents||0),0);
+      metricsHolder.innerHTML='';
+      metricsHolder.append($(`<div class="metrics"><div class="metric"><div class="k">Net revenue${q||st?' (filtered)':''}</div><div class="v">${money(net)}</div></div><div class="metric"><div class="k">Gross${q||st?' (filtered)':''}</div><div class="v">${money(gross)}</div></div><div class="metric"><div class="k">Months shown</div><div class="v">${filtered.length}</div></div></div>`));
+      tableHolder.innerHTML='';
+      if(!filtered.length){tableHolder.append($(`<div class="empty">No months match your search.</div>`));return;}
       const t=$(`<div class="table-scroll"><table><thead><tr><th>Month</th><th>Status</th><th>Billable</th><th>Paid</th><th>Failed</th><th>Refunded</th><th>Gross</th><th>Refunds</th><th>Net</th></tr></thead><tbody></tbody></table></div>`);
       const tb=t.querySelector('tbody');
-      rows.forEach(r=>tb.append($(`<tr><td><b>${fmtMonth(r.month)}</b></td><td><span class="pill ${r.cohort_status==='open'?'active':'scheduled'}">${esc(r.cohort_status)}</span></td><td>${r.billable_orders}</td><td>${r.paid_orders}</td><td>${r.failed_orders}</td><td>${r.refunded_orders}</td><td>${money2(r.gross_paid_cents)}</td><td>${money2(r.refunded_cents)}</td><td><b>${money2(r.net_revenue_cents)}</b></td></tr>`)));
-      holder.append(t);
-    }catch(e){wrap.textContent=e.message;}
+      filtered.forEach(r=>tb.append($(`<tr><td><b>${fmtMonth(r.month)}</b></td><td><span class="pill ${r.cohort_status==='open'?'active':'scheduled'}">${esc(r.cohort_status)}</span></td><td>${r.billable_orders}</td><td>${r.paid_orders}</td><td>${r.failed_orders}</td><td>${r.refunded_orders}</td><td>${money2(r.gross_paid_cents)}</td><td>${money2(r.refunded_cents)}</td><td><b>${money2(r.net_revenue_cents)}</b></td></tr>`)));
+      tableHolder.append(t);
+    };
+    ctl.querySelector('#revq').addEventListener('input',paint);
+    ctl.querySelector('#revst').addEventListener('change',paint);
+    paint();
   };
   // --- Notify: broadcast (preview→confirm) + pickup reminders ---
   const drawNotify=()=>{
@@ -879,8 +930,61 @@ async function viewAdmin(){
       finally{rbtn.disabled=false;rbtn.textContent='Send pickup reminders now';}
     });
   };
-  tabs.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');({ov:drawOv,subs:drawSubs,members:drawMembers,roster:drawRoster,revenue:drawRevenue,notify:drawNotify,cohorts:drawCohorts,orders:drawOrders}[btn.dataset.t])();}));
-  drawOv(); return el;
+  const draws={ov:drawOv,subs:drawSubs,members:drawMembers,orders:drawOrders,roster:drawRoster,revenue:drawRevenue,notify:drawNotify};
+  const NAV=[
+    {t:'ov',label:'Clubs',ico:'🧀'},
+    {t:'subs',label:'Subscriptions',ico:'📋'},
+    {t:'members',label:'Members',ico:'👥'},
+    {t:'orders',label:'Orders',ico:'📦'},
+    {t:'roster',label:'Roster',ico:'📅'},
+    {t:'revenue',label:'Revenue',ico:'💵'},
+    {t:'notify',label:'Notify',ico:'✉️'},
+  ];
+  if(!draws[ADMIN_TAB]) ADMIN_TAB='ov';
+  const selectTab=(t)=>{ ADMIN_TAB=t; nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.t===t)); draws[t](); };
+  NAV.forEach(it=>{const b=$(`<button data-t="${it.t}"><span class="ico">${it.ico}</span>${esc(it.label)}</button>`);b.addEventListener('click',()=>selectTab(it.t));nav.append(b);});
+  selectTab(ADMIN_TAB);
+  return el;
+}
+// Admin: edit a member's subscription (tier, fulfillment, status, gift).
+// Writes go through the cc_subs_owner_update RLS policy (cc_is_admin()).
+function editSubscription(s){
+  const m=document.getElementById('modal');
+  const clubs=S.clubs.slice();
+  if(s.cc_clubs && !clubs.find(c=>c.id===s.cc_clubs.id)) clubs.push(s.cc_clubs);
+  const ffs=S.fulfillment.filter(f=>!f.coming_soon);
+  const memberName=(s.cc_members&&(s.cc_members.full_name||s.cc_members.email))||'this member';
+  const row=(label,inner)=>`<label class="fld"><span>${label}</span>${inner}</label>`;
+  const statusOpts=['active','paused','cancelled'];
+  m.innerHTML=`<h3>Edit subscription</h3><p class="muted" style="font-size:13px;margin-top:-6px">${esc(memberName)}</p>`;
+  const wrap=$(`<div></div>`);
+  wrap.innerHTML=
+    row('Membership tier',`<select id="es_club">${clubs.map(c=>`<option value="${c.id}" ${c.id===s.club_id?'selected':''}>${esc(c.name)} — ${money(c.monthly_price_cents)}/mo</option>`).join('')}</select>`)+
+    row('Fulfillment',`<select id="es_ff">${ffs.map(f=>`<option value="${f.id}" ${f.id===s.fulfillment_option_id?'selected':''}>${esc(f.label)}</option>`).join('')}</select>`)+
+    row('Status',`<select id="es_status">${statusOpts.map(st=>`<option value="${st}" ${st===s.status?'selected':''}>${st}</option>`).join('')}</select>`)+
+    `<div id="es_pausedwrap" style="display:${s.status==='paused'?'block':'none'}">${row('Paused until',`<input id="es_paused" type="month" value="${s.paused_until?esc(s.paused_until.slice(0,7)):''}">`)}</div>`+
+    `<label class="opt" style="margin-top:2px"><input id="es_gift" type="checkbox" ${s.is_gift?'checked':''}><div class="meta"><b>Gift 🎁</b><small>Marked as a gift membership</small></div></label>`;
+  m.append(wrap);
+  wrap.querySelector('#es_status').addEventListener('change',e=>{wrap.querySelector('#es_pausedwrap').style.display=e.target.value==='paused'?'block':'none';});
+  const save=$(`<button class="btn btn-primary" style="width:100%;margin-top:12px">Save changes</button>`);
+  save.addEventListener('click',async()=>{
+    const status=wrap.querySelector('#es_status').value;
+    const patch={
+      club_id:wrap.querySelector('#es_club').value,
+      fulfillment_option_id:wrap.querySelector('#es_ff').value,
+      status,
+      is_gift:wrap.querySelector('#es_gift').checked,
+      cancelled_at: status==='cancelled' ? (s.cancelled_at||new Date().toISOString()) : null,
+      paused_until: status==='paused' ? ((wrap.querySelector('#es_paused').value||'')?wrap.querySelector('#es_paused').value+'-01':null) : null,
+    };
+    save.disabled=true;save.textContent='Saving…';
+    const {error}=await sb.from('cc_subscriptions').update(patch).eq('id',s.id);
+    if(error){toast(error.message,true);save.disabled=false;save.textContent='Save changes';return;}
+    closeModal();toast('Subscription updated.');render();
+  });
+  m.append(save);
+  m.append($(`<button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Cancel</button>`));
+  document.getElementById('modalBg').classList.add('show');
 }
 async function createLabel(o, btn, origin){
   btn.disabled=true;btn.textContent='Creating…';
