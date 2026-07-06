@@ -586,9 +586,37 @@ async function viewAccount(){
   };
   const drawProfile=()=>{
     body.innerHTML='';
-    const c=$(`<div class="card" style="max-width:520px"><label class="fld"><span>Full name</span><input id="pf_name" value="${esc(S.member&&S.member.full_name||'')}"></label><label class="fld"><span>Phone</span><input id="pf_phone" value="${esc(S.member&&S.member.phone||'')}"></label><label class="fld"><span>Email</span><input value="${esc(S.member&&S.member.email||'')}" disabled></label></div>`);
-    const b=$(`<button class="btn btn-primary btn-sm" style="margin-top:4px">Save changes</button>`);
-    b.addEventListener('click',async()=>{b.disabled=true;const {error}=await sb.from('cc_members').update({full_name:c.querySelector('#pf_name').value,phone:c.querySelector('#pf_phone').value}).eq('id',S.session.user.id);b.disabled=false;if(error)toast(error.message,true);else{toast('Profile saved.');await refreshMember();}});
+    const M=S.member||{}, optIn=M.email_opt_in!==false;
+    const c=$(`<div class="card" style="max-width:560px">
+      <label class="fld"><span>Full name</span><input id="pf_name" value="${esc(M.full_name||'')}"></label>
+      <label class="fld"><span>Phone</span><input id="pf_phone" value="${esc(M.phone||'')}"></label>
+      <label class="fld"><span>Email</span><input value="${esc(M.email||'')}" disabled></label>
+      <label class="fld"><span>Birthday</span><input id="pf_bday" type="date" value="${esc(M.birthday||'')}"></label>
+      <h4 style="margin:14px 0 4px;font-size:15px">Mailing address</h4>
+      <label class="fld"><span>Street</span><input id="pf_street" value="${esc(M.address_street||'')}"></label>
+      <label class="fld"><span>City</span><input id="pf_city" value="${esc(M.address_city||'')}"></label>
+      <div style="display:flex;gap:12px"><label class="fld" style="flex:1"><span>State</span><input id="pf_state" value="${esc(M.address_state||'')}"></label><label class="fld" style="flex:1"><span>ZIP</span><input id="pf_zip" value="${esc(M.address_zip||'')}"></label></div>
+      <label class="fld"><span>Cheese preferences & allergies</span><textarea id="pf_diet" rows="3" placeholder="e.g. no blue cheese, dairy sensitivity, love aged gouda">${esc(M.dietary_prefs||'')}</textarea></label>
+      <label class="opt ${optIn?'sel':''}" style="margin:0"><input id="pf_optin" type="checkbox" ${optIn?'checked':''}><div class="meta"><b>Email updates</b><small>Cheese Club news, seasonal boxes, and member offers.</small></div></label>
+    </div>`);
+    const ck=c.querySelector('#pf_optin');ck.addEventListener('change',()=>ck.closest('.opt').classList.toggle('sel',ck.checked));
+    const b=$(`<button class="btn btn-primary btn-sm" style="margin-top:12px">Save changes</button>`);
+    b.addEventListener('click',async()=>{
+      b.disabled=true;
+      const patch={
+        full_name:c.querySelector('#pf_name').value.trim()||null,
+        phone:c.querySelector('#pf_phone').value.trim()||null,
+        birthday:c.querySelector('#pf_bday').value||null,
+        address_street:c.querySelector('#pf_street').value.trim()||null,
+        address_city:c.querySelector('#pf_city').value.trim()||null,
+        address_state:c.querySelector('#pf_state').value.trim()||null,
+        address_zip:c.querySelector('#pf_zip').value.trim()||null,
+        dietary_prefs:c.querySelector('#pf_diet').value.trim()||null,
+        email_opt_in:ck.checked
+      };
+      const {error}=await sb.from('cc_members').update(patch).eq('id',S.session.user.id);
+      b.disabled=false;if(error)toast(error.message,true);else{toast('Profile saved.');await refreshMember();}
+    });
     body.append(c);body.append(b);
   };
   tabs.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');({subs:drawSubs,orders:drawOrders,profile:drawProfile}[btn.dataset.t])();}));
@@ -796,8 +824,47 @@ async function viewAdmin(){
     ctl.querySelector('#subq').addEventListener('input',paint);
     paint();
   };
-  const drawMembers=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Subscriptions</th><th>Role</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
-    members.forEach(m=>{const n=subs.filter(s=>s.member_id===m.id).length;tb.append($(`<tr><td><b>${esc(m.full_name||'—')}</b></td><td>${esc(m.email)}</td><td>${esc(m.phone||'—')}</td><td>${n}</td><td>${m.is_admin?'<span class="pill paid">admin</span>':'member'}</td></tr>`));});body.append(t);};
+  function editMember(m,onSaved){
+    const md=document.getElementById('modal');const optIn=m.email_opt_in!==false;
+    md.innerHTML=`<h3>Edit member</h3><p class="muted" style="font-size:13px;margin-top:0">${esc(m.email)}</p>`;
+    const wrap=$(`<div>
+      <label class="fld"><span>Full name</span><input id="em_name" value="${esc(m.full_name||'')}"></label>
+      <label class="fld"><span>Phone</span><input id="em_phone" value="${esc(m.phone||'')}"></label>
+      <label class="fld"><span>Birthday</span><input id="em_bday" type="date" value="${esc(m.birthday||'')}"></label>
+      <label class="fld"><span>Street</span><input id="em_street" value="${esc(m.address_street||'')}"></label>
+      <div style="display:flex;gap:10px"><label class="fld" style="flex:2"><span>City</span><input id="em_city" value="${esc(m.address_city||'')}"></label><label class="fld" style="flex:1"><span>State</span><input id="em_state" value="${esc(m.address_state||'')}"></label><label class="fld" style="flex:1"><span>ZIP</span><input id="em_zip" value="${esc(m.address_zip||'')}"></label></div>
+      <label class="fld"><span>Cheese preferences & allergies</span><textarea id="em_diet" rows="2">${esc(m.dietary_prefs||'')}</textarea></label>
+      <label class="fld"><span>Internal notes (admin only)</span><textarea id="em_notes" rows="2" placeholder="Not shown to the member">${esc(m.admin_notes||'')}</textarea></label>
+      <label class="opt ${optIn?'sel':''}"><input id="em_optin" type="checkbox" ${optIn?'checked':''}><div class="meta"><b>Email opt-in</b><small>Receives Cheese Club broadcasts.</small></div></label>
+      <label class="opt ${m.is_admin?'sel':''}"><input id="em_admin" type="checkbox" ${m.is_admin?'checked':''}><div class="meta"><b>Partner (admin) access</b><small>Can open the Partner Portal.</small></div></label>
+    </div>`);
+    wrap.querySelectorAll('.opt input[type=checkbox]').forEach(ck=>ck.addEventListener('change',()=>ck.closest('.opt').classList.toggle('sel',ck.checked)));
+    md.append(wrap);
+    const save=$(`<button class="btn btn-primary" style="width:100%;margin-top:6px">Save changes</button>`);
+    save.addEventListener('click',async()=>{
+      save.disabled=true;save.textContent='Saving…';
+      const patch={
+        full_name:wrap.querySelector('#em_name').value.trim()||null,
+        phone:wrap.querySelector('#em_phone').value.trim()||null,
+        birthday:wrap.querySelector('#em_bday').value||null,
+        address_street:wrap.querySelector('#em_street').value.trim()||null,
+        address_city:wrap.querySelector('#em_city').value.trim()||null,
+        address_state:wrap.querySelector('#em_state').value.trim()||null,
+        address_zip:wrap.querySelector('#em_zip').value.trim()||null,
+        dietary_prefs:wrap.querySelector('#em_diet').value.trim()||null,
+        admin_notes:wrap.querySelector('#em_notes').value.trim()||null,
+        email_opt_in:wrap.querySelector('#em_optin').checked,
+        is_admin:wrap.querySelector('#em_admin').checked
+      };
+      try{const j=await ccFnJson('cc-admin',{action:'member_update',member_id:m.id,patch});closeModal();toast('Member updated.');if(onSaved)onSaved(j.member||patch);}
+      catch(e){toast(e.message,true);save.disabled=false;save.textContent='Save changes';}
+    });
+    md.append(save);
+    md.append($(`<button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Cancel</button>`));
+    document.getElementById('modalBg').classList.add('show');
+  }
+  const drawMembers=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Subscriptions</th><th>Role</th><th></th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
+    members.forEach(m=>{const n=subs.filter(s=>s.member_id===m.id).length;const tr=$(`<tr><td><b>${esc(m.full_name||'—')}</b>${m.admin_notes?' <span title="Has internal notes">📝</span>':''}</td><td>${esc(m.email)}</td><td>${esc(m.phone||'—')}</td><td>${n}</td><td>${m.is_admin?'<span class="pill paid">admin</span>':'member'}</td><td></td></tr>`);const eb=$(`<button class="btn btn-ghost btn-sm">Edit</button>`);eb.addEventListener('click',()=>editMember(m,updated=>{Object.assign(m,updated);drawMembers();}));tr.lastElementChild.append(eb);tb.append(tr);});body.append(t);};
   const drawOrders=()=>{body.innerHTML='';const t=$(`<div class="table-scroll"><table><thead><tr><th>Member</th><th>Club</th><th>Cohort</th><th>Amount</th><th>Status</th><th>Shipping</th></tr></thead><tbody></tbody></table></div>`);const tb=t.querySelector('tbody');
     orders.sort((a,b)=>(((b.cc_cohorts&&b.cc_cohorts.month)||'').localeCompare((a.cc_cohorts&&a.cc_cohorts.month)||''))).forEach(o=>{
       const sub=o.cc_subscriptions||{}; const fft=sub.cc_fulfillment_options&&sub.cc_fulfillment_options.type;
