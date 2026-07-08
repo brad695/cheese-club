@@ -279,9 +279,29 @@ async function render(){
   if(!seg){ app.innerHTML=''; app.append(viewHome()); return; }
   if(seg==='join'){ app.innerHTML=''; app.append(viewJoin(arg)); return; }
   if(seg==='account'){ if(!S.session) return go('/login'); await refreshMember(); app.innerHTML=''; app.append(await viewAccount()); return; }
-  if(seg==='admin'){ if(!S.session) return go('/login'); await refreshMember(); if(!(S.member&&S.member.is_admin)){app.innerHTML='';app.append(viewNoAdmin());return;} app.innerHTML=''; app.append(await viewAdmin()); return; }
+  if(seg==='admin'){ if(!S.session){ app.innerHTML=''; app.append(viewManagerPass()); return; } await refreshMember(); if(!(S.member&&S.member.is_admin)){app.innerHTML='';app.append(viewNoAdmin());return;} app.innerHTML=''; app.append(await viewAdmin()); return; }
   if(seg==='login'){ app.innerHTML=''; app.append(viewLogin()); return; }
   app.innerHTML=''; app.append(viewHome());
+}
+function viewManagerPass(){
+  const box=$(`<div style="max-width:420px;margin:60px auto;padding:0 16px;">
+    <h2>Partner Portal</h2>
+    <p style="color:#6b7280;margin:8px 0 16px;">Enter the manager password.</p>
+    <input id="mgrPw" type="password" placeholder="Manager password" style="width:100%;padding:11px 13px;border:1.5px solid #e7e4dd;border-radius:10px;font-size:15px;margin-bottom:10px;box-sizing:border-box;">
+    <div id="mgrErr" style="color:#b3261e;font-size:13px;min-height:18px;margin-bottom:6px;"></div>
+    <button id="mgrBtn" class="btn btn-primary" style="width:100%">Unlock</button>
+  </div>`);
+  const doIt=async()=>{
+    const pw=box.querySelector('#mgrPw').value;
+    const err=box.querySelector('#mgrErr'); err.textContent='';
+    if(!pw){ err.textContent='Enter the manager password.'; return; }
+    const {error}=await sb.auth.signInWithPassword({email:'manager@greyscheese.com',password:pw});
+    if(error){ err.textContent='Incorrect password'; return; }
+    await onAuthed(); go('/admin');
+  };
+  box.querySelector('#mgrBtn').addEventListener('click',doIt);
+  box.querySelector('#mgrPw').addEventListener('keydown',e=>{ if(e.key==='Enter') doIt(); });
+  return box;
 }
 function renderNav(){
   const n=document.getElementById('navLinks'); n.innerHTML='';
@@ -548,19 +568,6 @@ function viewLogin(){
       const b=$(`<button class="btn btn-primary" style="width:100%">Sign in</button>`);
       b.addEventListener('click',async()=>{b.disabled=true;try{await doLogin(form.querySelector('#email').value.trim(),form.querySelector('#pw').value);await onAuthed();go(S.member&&S.member.is_admin?'/admin':'/account');toast('Signed in.');}catch(e){toast(e.message,true);b.disabled=false;}});
       form.append(b);
-      const ml=$(`<button class="btn btn-ghost" style="width:100%;margin-top:8px">Email me a sign-in link</button>`);
-      ml.addEventListener('click',async()=>{
-        ml.disabled=true;
-        try{
-          const em=form.querySelector('#email').value.trim();
-          if(!em) throw new Error('Enter your email first.');
-          const {error}=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
-          if(error) throw error;
-          toast('Check your inbox for the sign-in link.');
-        }catch(e){toast(e.message,true);}
-        ml.disabled=false;
-      });
-      form.append(ml);
     }else{
       form.append($(`<label class="fld"><span>Full name</span><input id="name"></label>`));
       form.append($(`<label class="fld"><span>Email</span><input id="email" type="email"></label>`));
