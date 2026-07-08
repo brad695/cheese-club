@@ -242,6 +242,13 @@ async function refreshMember(){
   if(!S.session){S.member=null;return;}
   const {data}=await sb.from('cc_members').select('*').eq('id',S.session.user.id).maybeSingle();
   S.member=data;
+  try{
+    const r=await sb.rpc('cc_is_admin');
+    if(r&&r.data===true){
+      S.member=data||{id:S.session.user.id,email:S.session.user.email,full_name:S.session.user.email};
+      S.member.is_admin=true;
+    }
+  }catch(_){}
 }
 
 /* ====== AUTH ====== */
@@ -541,6 +548,19 @@ function viewLogin(){
       const b=$(`<button class="btn btn-primary" style="width:100%">Sign in</button>`);
       b.addEventListener('click',async()=>{b.disabled=true;try{await doLogin(form.querySelector('#email').value.trim(),form.querySelector('#pw').value);await onAuthed();go(S.member&&S.member.is_admin?'/admin':'/account');toast('Signed in.');}catch(e){toast(e.message,true);b.disabled=false;}});
       form.append(b);
+      const ml=$(`<button class="btn btn-ghost" style="width:100%;margin-top:8px">Email me a sign-in link</button>`);
+      ml.addEventListener('click',async()=>{
+        ml.disabled=true;
+        try{
+          const em=form.querySelector('#email').value.trim();
+          if(!em) throw new Error('Enter your email first.');
+          const {error}=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
+          if(error) throw error;
+          toast('Check your inbox for the sign-in link.');
+        }catch(e){toast(e.message,true);}
+        ml.disabled=false;
+      });
+      form.append(ml);
     }else{
       form.append($(`<label class="fld"><span>Full name</span><input id="name"></label>`));
       form.append($(`<label class="fld"><span>Email</span><input id="email" type="email"></label>`));
